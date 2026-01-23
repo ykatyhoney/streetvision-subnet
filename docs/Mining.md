@@ -73,29 +73,6 @@ btcli s register --netuid 72 --wallet.name [wallet_name] --wallet.hotkey [wallet
 btcli s register --netuid 323 --wallet.name [wallet_name] --wallet.hotkey [wallet.hotkey] --subtensor.network test
 ```
 
-## Economy registration
-Once registered on-chain, you must also register on the **Natix application server**. make sure you've registered, and received your `uid` on Bittensor (as explained above).
-To register with the Natix network, you must sign a recent timestamp with your **Bittensor** hot key.
-
-
-Use the `./register.sh` script to simplify registration with the Natix application server:
-
-```bash
-./register.sh <uid> <bt_wallet_name> <bt_hotkey_name> miner <hf_model_path>
-```
-
-**Example:**
-```bash
-./register.sh 10 reyraa default miner reyraa/roadwork
-```
-
-This script will:
-- Generate a fresh timestamp
-- Sign it with your **Bittensor** hot key
-- Send a POST request to:  
-  `https://hydra.natix.network/participant/register`
-
----
 
 ## Mining
 Run `./setup_env.sh` to generate a `miner.env` file with default configuration.
