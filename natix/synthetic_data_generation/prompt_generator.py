@@ -83,8 +83,20 @@ class PromptGenerator:
         for param in llm.parameters():
             if param.dtype == torch.float32:
                 param.data = param.data.to(torch.float16)
-                
-        self.llm_pipeline = pipeline("text-generation", model=llm, tokenizer=tokenizer)
+
+        if torch.cuda.is_available():
+            device = "cuda"
+        elif torch.backends.mps.is_available():
+            device = "mps"
+        else:
+            device = "cpu"
+
+        self.llm_pipeline = pipeline(
+            "text-generation",
+            model=llm,
+            tokenizer=tokenizer,
+            device=device,
+        )
         bt.logging.info(f"Loaded caption moderation model {self.llm_name}")
 
     def clear_gpu(self) -> None:
@@ -124,7 +136,10 @@ class PromptGenerator:
         if not verbose:
             transformers_logging.set_verbosity_error()
 
-        inputs = self.vlm_processor(images=image, text="", return_tensors="pt").to(self.device)
+        inputs = self.vlm_processor(
+            images=image,
+            return_tensors="pt"
+        ).to(self.device)
         generated_ids = self.vlm.generate(**inputs, max_new_tokens=max_new_tokens)
         caption = self.vlm_processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
 
@@ -177,7 +192,6 @@ class PromptGenerator:
                 max_new_tokens=max_new_tokens,
                 pad_token_id=self.llm_pipeline.tokenizer.eos_token_id,
                 return_full_text=False,
-                max_length=None,
             )[0]["generated_text"]
 
             moderated_text = moderated_text.strip()
@@ -193,11 +207,7 @@ class PromptGenerator:
                     if token not in moderated_text:
                         moderated_text += f", {token}"
 
-            # Ensure single sentence
             moderated_text = moderated_text.split(".")[0] + "."
-
-            # Enforce SDXL 77 token CLIP limit
-            moderated_text = self._enforce_clip_token_limit(moderated_text)
 
             return moderated_text
 

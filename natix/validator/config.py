@@ -78,7 +78,7 @@ T2I_MODELS: Dict[str, Dict[str, Any]] = {
         "vae_enable_slicing": True,
         "vae_enable_tiling": True,
         "generate_args": {
-            "guidance_scale": 8.0,
+            "guidance_scale": 8.5,
             "num_inference_steps": 25,
             "generator": torch.Generator(
                 "cuda" if torch.cuda.is_available() else "cpu"
@@ -104,7 +104,7 @@ I2I_MODELS: Dict[str, Dict[str, Any]] = {
         "vae_enable_slicing": True,
         "vae_enable_tiling": True,
         "generate_args": {
-            "guidance_scale": 8.0,
+            "guidance_scale": 8.5,
             "num_inference_steps": 25,
             "strength": 0.7,
             "generator": torch.Generator(

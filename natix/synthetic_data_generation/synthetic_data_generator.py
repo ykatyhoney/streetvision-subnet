@@ -298,7 +298,25 @@ class SyntheticDataGenerator:
                 gen_args["width"] = gen_args["resolution"][1]
                 del gen_args["resolution"]
 
-            truncated_prompt = truncate_prompt_if_too_long(prompt, self.model)
+            truncated_prompt = prompt
+
+            if hasattr(self.model, "tokenizer"):
+                clip_tokenizer = self.model.tokenizer
+                clip_tokens = clip_tokenizer(
+                    truncated_prompt,
+                    truncation=False
+                )["input_ids"]
+
+                if len(clip_tokens) > 77:
+                    bt.logging.warning(
+                        f"Prompt exceeds 77 CLIP tokens ({len(clip_tokens)}). Truncating."
+                    )
+                    clip_tokens = clip_tokens[:77]
+                    truncated_prompt = clip_tokenizer.decode(
+                        clip_tokens,
+                        skip_special_tokens=True
+                    )
+
             bt.logging.info(f"Generating media from prompt: {truncated_prompt}")
             bt.logging.info(f"Generation args: {gen_args}")
 
