@@ -10,7 +10,6 @@ from transformers import pipeline
 from natix.validator.config import HUGGINGFACE_CACHE_DIR
 
 
-
 class PromptGenerator:
     """
     A class for generating and moderating image annotations using transformer models.
@@ -115,91 +114,114 @@ class PromptGenerator:
         
         bt.logging.info("GPU memory cleared")
 
-    def generate(self, image: Image.Image, label: int = None, max_new_tokens: int = 80, verbose: bool = False) -> str:
-        """
-        Generate a string description for a given image using BLIP2 with no prompt.
-
-        Args:
-            image: The image for which the description is to be generated.
-            label: 0 for no roadwork, 1 for roadwork present, None for generic.
-            max_new_tokens: The maximum number of tokens to generate.
-            verbose: If True, additional logging information is printed.
-
-        Returns:
-            A generated description of the image.
-        """
+    def generate(
+        self,
+        image: Image.Image,
+        label: int = None,
+        max_new_tokens: int = 60,
+        verbose: bool = False,
+    ) -> str:
         if not verbose:
             transformers_logging.set_verbosity_error()
 
         inputs = self.vlm_processor(images=image, text="", return_tensors="pt").to(self.device)
-        
         generated_ids = self.vlm.generate(**inputs, max_new_tokens=max_new_tokens)
         caption = self.vlm_processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
-
-        if verbose:
-            bt.logging.info(f"Generated caption: {caption}")
 
         if not verbose:
             transformers_logging.set_verbosity_info()
 
-        if caption and not caption.endswith("."):
-            caption += "."
-
         if not caption:
             caption = "Dashcam view of road scene."
 
-        moderated_description = self.moderate(caption, label)
+        moderated_description = self.moderate(caption, label, max_new_tokens=60)
         return moderated_description
 
-    def moderate(self, description: str, label: int = None, max_new_tokens: int = 80) -> str:
-        """
-        Use the text moderation pipeline to make the description more concise
-        and tailored to the specific label.
-
-        Args:
-            description: The text description to be moderated.
-            label: 0 for no roadwork, 1 for roadwork present, None for generic.
-            max_new_tokens: Maximum number of new tokens to generate.
-
-        Returns:
-            The moderated description text, or the original description if
-            moderation fails.
-        """
+    def moderate(
+        self,
+        description: str,
+        label: int = None,
+        max_new_tokens: int = 60,
+    ) -> str:
         if label == 1:
             system_content = (
-                "[INST]Enhance this dashcam footage description to include active roadwork. "
-                "Start with 'Photorealistic dashcam footage' and ADD roadwork elements to the existing scene: "
-                "orange traffic cones, construction barriers, construction vehicles, road crews in safety vests, "
-                "lane closure signs, construction equipment, or construction zones. The scene MUST show active roadwork.[/INST]"
+                "[INST]Write a SINGLE sentence under 40 words. "
+                "Start with 'Photorealistic dashcam footage of active roadwork with orange traffic cones, "
+                "construction barriers, and workers in safety vests'. "
+                "Describe the road scene clearly. No paragraphs, no filler text.[/INST]"
             )
+
         elif label == 0:
             system_content = (
-                "[INST]Rewrite as concise dashcam footage description. "
-                "Focus on clear roads and regular traffic. "
-                "Start with 'Photorealistic dashcam footage' of normal road and keep factual.[/INST]"
+                "[INST]Write a SINGLE sentence under 40 words. "
+                "Start with 'Photorealistic dashcam footage of'. "
+                "Describe a normal road scene with clear traffic and no construction. "
+                "Focus on road type, traffic, weather. No paragraphs, no filler text.[/INST]"
             )
+
         else:
             system_content = (
-                "[INST]Rewrite as concise dashcam footage description. "
-                "Start with 'Photorealistic dashcam footage' and keep factual.[/INST]"
+                "[INST]Write a SINGLE sentence under 40 words. "
+                "Start with 'Photorealistic dashcam footage of'. "
+                "Describe the road scene. No paragraphs, no filler text.[/INST]"
             )
-            
+
         messages = [
-            {
-                "role": "system",
-                "content": system_content,
-            },
+            {"role": "system", "content": system_content},
             {"role": "user", "content": description},
         ]
+
         try:
             moderated_text = self.llm_pipeline(
                 messages,
                 max_new_tokens=max_new_tokens,
                 pad_token_id=self.llm_pipeline.tokenizer.eos_token_id,
                 return_full_text=False,
-            )
-            return moderated_text[0]["generated_text"]
+            )[0]["generated_text"]
+
+            moderated_text = moderated_text.strip()
+
+            if label == 1:
+                required_tokens = [
+                    "orange traffic cones",
+                    "construction barriers",
+                    "workers in safety vests",
+                ]
+
+                for token in required_tokens:
+                    if token not in moderated_text:
+                        moderated_text += f", {token}"
+
+            # Ensure single sentence
+            moderated_text = moderated_text.split(".")[0] + "."
+
+            # Enforce SDXL 77 token CLIP limit
+            moderated_text = self._enforce_clip_token_limit(moderated_text)
+
+            return moderated_text
 
         except Exception as e:
-            bt.logging.error(f"An error occurred during moderation: {e}", exc_info=True)
+            bt.logging.error(f"Moderation error: {e}", exc_info=True)
             return description
+
+    def _enforce_clip_token_limit(self, prompt: str, max_tokens: int = 77) -> str:
+        try:
+            tokenizer = self.llm_pipeline.tokenizer
+            tokens = tokenizer(prompt, truncation=False)["input_ids"]
+
+            if len(tokens) <= max_tokens:
+                return prompt
+
+            truncated_tokens = tokens[:max_tokens]
+            truncated_prompt = tokenizer.decode(truncated_tokens, skip_special_tokens=True)
+
+            # Ensure clean ending
+            truncated_prompt = truncated_prompt.rsplit(",", 1)[0].rstrip()
+            if not truncated_prompt.endswith("."):
+                truncated_prompt += "."
+
+            return truncated_prompt
+
+        except Exception as e:
+            bt.logging.warning(f"Token limit enforcement failed: {e}")
+            return prompt
