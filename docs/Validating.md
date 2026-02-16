@@ -50,29 +50,6 @@ btcli s register --netuid 72 --wallet.name [wallet_name] --wallet.hotkey [wallet
 ```bash
 btcli s register --netuid 323 --wallet.name [wallet_name] --wallet.hotkey [wallet.hotkey] --subtensor.network test
 ```
-
-## NATIX Network Registration
-Once registered on-chain, you must also register on the **NATIX Application Server**. After   `uid` on Bittensor (as explained above) is received, Validatos must sign a recent timestamp with  **Bittensor** hot key to be white-listed in NATIX application sever.
-
-This step is **required** in order to receive organic requests comming from NATIX Network.
-
-Use the `./register.sh` script to perform this step.
-
-```bash
-./register.sh <uid> <bt_wallet_name> <bt_hotkey_name> validator
-```
-
-**Example:**
-```bash
-./register.sh 10 reyraa default validator
-```
-
-This script will:
-- Generate a fresh timestamp
-- Sign it with your **Bittensor** hot key
-- Send a POST request to:  
-  `https://hydra.natix.network/participant/register`
-
 ---
 
 ## Validating

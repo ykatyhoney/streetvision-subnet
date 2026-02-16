@@ -73,29 +73,6 @@ btcli s register --netuid 72 --wallet.name [wallet_name] --wallet.hotkey [wallet
 btcli s register --netuid 323 --wallet.name [wallet_name] --wallet.hotkey [wallet.hotkey] --subtensor.network test
 ```
 
-## Economy registration
-Once registered on-chain, you must also register on the **Natix application server**. make sure you've registered, and received your `uid` on Bittensor (as explained above).
-To register with the Natix network, you must sign a recent timestamp with your **Bittensor** hot key.
-
-
-Use the `./register.sh` script to simplify registration with the Natix application server:
-
-```bash
-./register.sh <uid> <bt_wallet_name> <bt_hotkey_name> miner <hf_model_path>
-```
-
-**Example:**
-```bash
-./register.sh 10 reyraa default miner reyraa/roadwork
-```
-
-This script will:
-- Generate a fresh timestamp
-- Sign it with your **Bittensor** hot key
-- Send a POST request to:  
-  `https://hydra.natix.network/participant/register`
-
----
 
 ## Mining
 Run `./setup_env.sh` to generate a `miner.env` file with default configuration.
@@ -127,9 +104,6 @@ WALLET_HOTKEY=
 # Miner Settings
 MINER_AXON_PORT=8091
 BLACKLIST_FORCE_VALIDATOR_PERMIT=True # Force validator permit for blacklisting
-
-# Miner details
-MODEL_URL= # The URL to your Hugging-face repository
 ```
 
 Then, start your miner with:
@@ -149,22 +123,6 @@ chmod +x ./start_cache_updater.sh
 ```
 
 This invokes `natix/validator/scripts/run_cache_updater.py` in the background.
-
-## Submitted a Model
-
-Miners must publish their model to Hugging Face and include a `model_card.json` with the following format:
-
-```json
-{
-  "model_name": "<ARBITRARY_MODEL_NAME>",
-  "description": "<DESCRIPTION>",
-  "version": <VERSION NUMBER IN X.Y.Z format>,
-  "submitted_by": "<WALLET_HOTKEY_ADDRESS>",
-  "submission_time": <TIMESTAMP>
-}
-```
-
-Update the `MODE_URL` variable in your `miner.env` to reflect your Hugging Face repository.
 
 ## Deploy Your Model
 
