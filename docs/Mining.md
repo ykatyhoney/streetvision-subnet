@@ -104,9 +104,6 @@ WALLET_HOTKEY=
 # Miner Settings
 MINER_AXON_PORT=8091
 BLACKLIST_FORCE_VALIDATOR_PERMIT=True # Force validator permit for blacklisting
-
-# Miner details
-MODEL_URL= # The URL to your Hugging-face repository
 ```
 
 Then, start your miner with:
@@ -126,22 +123,6 @@ chmod +x ./start_cache_updater.sh
 ```
 
 This invokes `natix/validator/scripts/run_cache_updater.py` in the background.
-
-## Submitted a Model
-
-Miners must publish their model to Hugging Face and include a `model_card.json` with the following format:
-
-```json
-{
-  "model_name": "<ARBITRARY_MODEL_NAME>",
-  "description": "<DESCRIPTION>",
-  "version": <VERSION NUMBER IN X.Y.Z format>,
-  "submitted_by": "<WALLET_HOTKEY_ADDRESS>",
-  "submission_time": <TIMESTAMP>
-}
-```
-
-Update the `MODE_URL` variable in your `miner.env` to reflect your Hugging Face repository.
 
 ## Deploy Your Model
 
