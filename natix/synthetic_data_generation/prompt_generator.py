@@ -177,6 +177,7 @@ class PromptGenerator:
                 max_new_tokens=max_new_tokens,
                 pad_token_id=self.llm_pipeline.tokenizer.eos_token_id,
                 return_full_text=False,
+                max_length=None,
             )[0]["generated_text"]
 
             moderated_text = moderated_text.strip()
