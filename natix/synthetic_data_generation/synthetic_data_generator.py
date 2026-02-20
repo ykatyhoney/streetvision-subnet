@@ -104,7 +104,11 @@ class SyntheticDataGenerator:
         if self.prompt_type == "annotation" and self.image_cache is None:
             raise ValueError("image_cache cannot be None if prompt_type == 'annotation'")
 
-        self.prompt_generator = PromptGenerator(vlm_name=IMAGE_ANNOTATION_MODEL, llm_name=TEXT_MODERATION_MODEL)
+        self.prompt_generator = PromptGenerator(
+            vlm_name=IMAGE_ANNOTATION_MODEL,
+            llm_name=TEXT_MODERATION_MODEL,
+            device=self.device
+        )
 
         self.output_dir = Path(output_dir) if output_dir else None
         if self.output_dir:
@@ -325,15 +329,15 @@ class SyntheticDataGenerator:
             # Create pipeline-specific generator
             generate = create_pipeline_generator(model_config, self.model)
 
-            # Handle autocast if needed
+
             if model_config.get("use_autocast", True):
                 pretrained_args = model_config.get("from_pretrained_args", {})
-                torch_dtype = pretrained_args.get("torch_dtype", torch.bfloat16)
+                torch_dtype = pretrained_args.get("torch_dtype", torch.float32 if self.device == "cuda" else torch.float16) 
                 with torch.autocast(self.device, torch_dtype, cache_enabled=False):
                     gen_output = generate(truncated_prompt, **gen_args)
             else:
                 gen_output = generate(truncated_prompt, **gen_args)
-            
+
             if task == "i2i":
                 bt.logging.info(f"I2I Debug: Generation complete, output type: {type(gen_output)}")
                 if hasattr(gen_output, 'images') and len(gen_output.images) > 0:
@@ -471,7 +475,7 @@ class SyntheticDataGenerator:
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
                 torch.cuda.synchronize()
-                
+
                 # Log memory stats
                 allocated = torch.cuda.memory_allocated() / 1024**3
                 reserved = torch.cuda.memory_reserved() / 1024**3

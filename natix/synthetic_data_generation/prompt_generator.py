@@ -23,7 +23,7 @@ class PromptGenerator:
         self,
         vlm_name: str,
         llm_name: str,
-        device: str = 'cuda' if torch.cuda.is_available() else 'cpu',
+        device: str = 'cuda',
     ) -> None:
         """
         Initialize the ImageAnnotationGenerator with specific models and device settings.
@@ -84,18 +84,11 @@ class PromptGenerator:
             if param.dtype == torch.float32:
                 param.data = param.data.to(torch.float16)
 
-        if torch.cuda.is_available():
-            device = "cuda"
-        elif torch.backends.mps.is_available():
-            device = "mps"
-        else:
-            device = "cpu"
-
         self.llm_pipeline = pipeline(
             "text-generation",
             model=llm,
             tokenizer=tokenizer,
-            device=device,
+            device=self.device,
         )
         bt.logging.info(f"Loaded caption moderation model {self.llm_name}")
 
