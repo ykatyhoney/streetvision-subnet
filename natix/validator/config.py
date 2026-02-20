@@ -61,7 +61,7 @@ IMAGE_ANNOTATION_MODEL: str = "Salesforce/blip2-opt-2.7b-coco"
 TEXT_MODERATION_MODEL: str = (
     "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit"
     if torch.cuda.is_available()
-    else "unsloth/Meta-Llama-3.1-8B-Instruct"
+    else "unsloth/Llama-3.2-1B-Instruct"
 )
 
 # Text-to-image model configurations
@@ -70,8 +70,7 @@ T2I_MODELS: Dict[str, Dict[str, Any]] = {
         "pipeline_cls": StableDiffusionXLPipeline,
         "from_pretrained_args": {
             "use_safetensors": True,
-            "torch_dtype": torch.float16,
-            "variant": "fp16",
+            "torch_dtype": torch.float32 if not torch.cuda.is_available() else torch.float16,
         },
         "use_autocast": False,
         "enable_model_cpu_offload": True,
@@ -83,7 +82,19 @@ T2I_MODELS: Dict[str, Dict[str, Any]] = {
             "generator": torch.Generator(
                 "cuda" if torch.cuda.is_available() else "cpu"
             ),
-            "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi, video game, fantasy, sci-fi, aerial view, bird's eye view, satellite view, drone footage, helicopter view, top-down view, security camera, cctv, surveillance camera, indoor scene, interior, portrait, face, person close-up, selfie, vibrant colors, oversaturated, neon, glowing, night vision, thermal imaging, fisheye lens, wide angle distortion, motion blur, blurry, out of focus, unfocused, soft focus, speed blur, camera shake, movement blur",
+            "negative_prompt": "",
+            "negative_prompt": (
+                "cluttered, overcrowded, hundreds of cones, wall of traffic cones, "
+                "excessive machinery, messy construction site, crowded road, "
+                "over-populated, surreal amount of equipment, "
+                "cartoon, anime, painting, drawing, artistic, stylized, illustration,"
+                "sketch, unrealistic, fake, artificial, 3d render, cgi, video game,"
+                "fantasy, sci-fi, aerial view, bird's eye view, satellite view, drone footage,"
+                "helicopter view, top-down view, security camera, cctv, surveillance camera,"
+                "indoor scene, interior, portrait, face, person close-up, selfie, vibrant colors,"
+                "oversaturated, neon, glowing, night vision, thermal imaging, fisheye lens, wide angle distortion,"
+                "motion blur, blurry, out of focus, unfocused, soft focus, speed blur, camera shake, movement blur"
+            ),
         },
     },
 }

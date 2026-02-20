@@ -193,22 +193,21 @@ class PromptGenerator:
                 required_tokens = [
                     "a single orange traffic cone",
                     "one worker in a safety vest",
-                    "a construction vehicle",
+                    "a parked construction vehicle",
                     "a temporary roadwork sign",
                     "a small barrier"
                 ]
 
-                # Ensure at least one element is present, but don't clutter
-                num_elements = random.randint(1, 2)
-                chosen = random.sample(required_tokens, num_elements)
+                # Force a very low count
+                chosen = random.sample(required_tokens, 1) # Only pick ONE specific element
+                
                 if "active roadwork" in moderated_text:
+                    # Replace the generic term with a specific, singular instance
                     moderated_text = moderated_text.replace(
                         "active roadwork",
-                        "active roadwork with " + " and ".join(chosen),
+                        f"a localized roadwork zone featuring {chosen[0]}",
                         1
                     )
-
-                moderated_text += ", ".join(chosen)
 
             moderated_text = moderated_text.split(".")[0] + "."
 
