@@ -104,6 +104,7 @@ class SyntheticDataGenerator:
         if self.prompt_type == "annotation" and self.image_cache is None:
             raise ValueError("image_cache cannot be None if prompt_type == 'annotation'")
 
+        bt.logging.info(f"DEVICE PASSED TO GENERATOR: {self.device}")
         self.prompt_generator = PromptGenerator(
             vlm_name=IMAGE_ANNOTATION_MODEL,
             llm_name=TEXT_MODERATION_MODEL,

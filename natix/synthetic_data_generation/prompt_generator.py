@@ -84,6 +84,7 @@ class PromptGenerator:
             if param.dtype == torch.float32:
                 param.data = param.data.to(torch.float16)
 
+        bt.logging.info(f"DEVICE WHERE ERROR OCCURS: {self.device}")
         self.llm_pipeline = pipeline(
             "text-generation",
             model=llm,

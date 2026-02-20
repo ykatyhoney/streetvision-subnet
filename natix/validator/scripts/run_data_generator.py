@@ -46,6 +46,7 @@ if __name__ == "__main__":
         bt.logging.info("Image cache was populated! Proceeding to data generation")
         break
 
+    bt.logging.info(f"DEVICE PASSED: {args.device}")
     sdg = SyntheticDataGenerator(
         prompt_type="annotation",
         use_random_model=args.model is None,
