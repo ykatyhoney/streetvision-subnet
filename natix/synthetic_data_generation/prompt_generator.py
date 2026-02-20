@@ -1,5 +1,5 @@
 import gc
-
+import random
 import bittensor as bt
 import torch
 from PIL import Image
@@ -89,7 +89,6 @@ class PromptGenerator:
             "text-generation",
             model=llm,
             tokenizer=tokenizer,
-            device=self.device,
         )
         bt.logging.info(f"Loaded caption moderation model {self.llm_name}")
 
@@ -142,8 +141,9 @@ class PromptGenerator:
 
         if not caption:
             caption = "Dashcam view of road scene."
-
+    
         moderated_description = self.moderate(caption, label, max_new_tokens=60)
+        moderated_description = self._enforce_clip_token_limit(moderated_description, max_tokens=77)
         return moderated_description
 
     def moderate(
@@ -154,10 +154,9 @@ class PromptGenerator:
     ) -> str:
         if label == 1:
             system_content = (
-                "[INST]Write a SINGLE sentence under 40 words. "
-                "Start with 'Photorealistic dashcam footage of active roadwork with orange traffic cones, "
-                "construction barriers, and workers in safety vests'. "
-                "Describe the road scene clearly. No paragraphs, no filler text.[/INST]"
+                "[INST]Write a SINGLE sentence under 35 words. "
+                "Start with 'Photorealistic dashcam footage of active roadwork'. "
+                "Describe a realistic road scene. Avoid clutter. No filler text.[/INST]"
             )
 
         elif label == 0:
@@ -192,14 +191,24 @@ class PromptGenerator:
 
             if label == 1:
                 required_tokens = [
-                    "orange traffic cones",
-                    "construction barriers",
-                    "workers in safety vests",
+                    "a single orange traffic cone",
+                    "one worker in a safety vest",
+                    "a construction vehicle",
+                    "a temporary roadwork sign",
+                    "a small barrier"
                 ]
 
-                for token in required_tokens:
-                    if token not in moderated_text:
-                        moderated_text += f", {token}"
+                # Ensure at least one element is present, but don't clutter
+                num_elements = random.randint(1, 2)
+                chosen = random.sample(required_tokens, num_elements)
+                if "active roadwork" in moderated_text:
+                    moderated_text = moderated_text.replace(
+                        "active roadwork",
+                        "active roadwork with " + " and ".join(chosen),
+                        1
+                    )
+
+                moderated_text += ", ".join(chosen)
 
             moderated_text = moderated_text.split(".")[0] + "."
 
