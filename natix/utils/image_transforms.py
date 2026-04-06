@@ -11,6 +11,36 @@ from PIL import Image
 from natix.validator.config import TARGET_IMAGE_SIZE
 
 
+class ResizeWithPadding:
+    """Resize while keeping full content; letterbox to the target square."""
+
+    def __init__(self, size, fill=0):
+        self.size = size  # (H, W)
+        self.fill = fill
+        self.params = None
+
+    def __call__(self, img):
+        target_h, target_w = self.size
+        orig_w, orig_h = img.size
+        scale = min(target_w / orig_w, target_h / orig_h)
+        new_w, new_h = int(orig_w * scale), int(orig_h * scale)
+
+        resized = F.resize(img, [new_h, new_w])
+
+        pad_left = (target_w - new_w) // 2
+        pad_top = (target_h - new_h) // 2
+        pad_right = target_w - new_w - pad_left
+        pad_bottom = target_h - new_h - pad_top
+
+        padded = F.pad(resized, [pad_left, pad_top, pad_right, pad_bottom], fill=self.fill)
+        self.params = {
+            "scale": scale,
+            "new_size": (new_h, new_w),
+            "padding": (pad_left, pad_top, pad_right, pad_bottom),
+        }
+        return padded
+
+
 def center_crop():
     def fn(img):
         m = min(img.size)
@@ -390,16 +420,17 @@ class ComposeWithParams:
 
 # Transform configurations
 def get_base_transforms(target_image_size=TARGET_IMAGE_SIZE):
-    return ComposeWithParams([ConvertToRGB(), center_crop(), transforms.Resize(target_image_size), transforms.ToTensor()])
+    # Preserve full frame: resize to fit then pad to square, no cropping
+    return ComposeWithParams([ConvertToRGB(), ResizeWithPadding(target_image_size), transforms.ToTensor()])
 
 
 def get_random_augmentations(target_image_size=TARGET_IMAGE_SIZE, mask_point=None):
     return ComposeWithParams(
         [
             ConvertToRGB(),
+            ResizeWithPadding(target_image_size),
             transforms.ToTensor(),
             RandomRotationWithParams(20, interpolation=transforms.InterpolationMode.BILINEAR),
-            RandomResizedCropWithParams(TARGET_IMAGE_SIZE, scale=(0.2, 1.0), ratio=(1.0, 1.0), include_point=mask_point),
             RandomHorizontalFlipWithParams(),
             RandomVerticalFlipWithParams(),
         ]
@@ -428,9 +459,9 @@ def get_random_augmentations_medium(target_image_size=TARGET_IMAGE_SIZE, mask_po
     return ComposeWithParams(
         [
             ConvertToRGB(),
+            ResizeWithPadding(target_image_size),
             transforms.ToTensor(),
             RandomRotationWithParams(20, interpolation=transforms.InterpolationMode.BILINEAR),
-            RandomResizedCropWithParams(TARGET_IMAGE_SIZE, scale=(0.2, 1.0), ratio=(1.0, 1.0), include_point=mask_point),
             RandomHorizontalFlipWithParams(),
             RandomVerticalFlipWithParams(),
             ApplyDeeperForensicsDistortion("CS", level_min=0, level_max=1),
@@ -445,9 +476,9 @@ def get_random_augmentations_hard(target_image_size=TARGET_IMAGE_SIZE, mask_poin
     return ComposeWithParams(
         [
             ConvertToRGB(),
+            ResizeWithPadding(target_image_size),
             transforms.ToTensor(),
             RandomRotationWithParams(20, interpolation=transforms.InterpolationMode.BILINEAR),
-            RandomResizedCropWithParams(TARGET_IMAGE_SIZE, scale=(0.2, 1.0), ratio=(1.0, 1.0), include_point=mask_point),
             RandomHorizontalFlipWithParams(),
             RandomVerticalFlipWithParams(),
             ApplyDeeperForensicsDistortion("CS", level_min=0, level_max=2),

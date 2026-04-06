@@ -65,11 +65,10 @@ if __name__ == "__main__":
     while True:
         try:
             batch_count += 1
-            
             # Monitor memory before generation
             ram_gb = process.memory_info().rss / 1024**3
             bt.logging.info(f"Batch {batch_count} - RAM: {ram_gb:.2f}GB")
-            
+
             # Monitor GPU memory if available
             if torch.cuda.is_available():
                 vram_allocated_gb = torch.cuda.memory_allocated() / 1024**3
