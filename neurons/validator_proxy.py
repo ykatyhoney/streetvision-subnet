@@ -86,9 +86,14 @@ class ValidatorProxy:
 
     def get_credentials(self):
         try:
+            v_uid_ip = self.validator.metagraph.axons[self.validator.uid].ip
+            bt.logging.info(f"Valdiator public: {v_uid_ip}")
             with Client(timeout=Timeout(30)) as client:
                 response = client.post(
                     f"{self.validator.config.proxy.proxy_client_url}/credentials",
+                    headers={
+                        "X-Forwarded-For": v_uid_ip
+                    },
                     json={
                         "postfix": (
                             f":{self.validator.config.proxy.port}/validator_proxy"
