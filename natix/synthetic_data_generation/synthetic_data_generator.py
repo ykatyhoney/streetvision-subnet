@@ -104,7 +104,12 @@ class SyntheticDataGenerator:
         if self.prompt_type == "annotation" and self.image_cache is None:
             raise ValueError("image_cache cannot be None if prompt_type == 'annotation'")
 
-        self.prompt_generator = PromptGenerator(vlm_name=IMAGE_ANNOTATION_MODEL, llm_name=TEXT_MODERATION_MODEL)
+        bt.logging.info(f"DEVICE PASSED TO GENERATOR: {self.device}")
+        self.prompt_generator = PromptGenerator(
+            vlm_name=IMAGE_ANNOTATION_MODEL,
+            llm_name=TEXT_MODERATION_MODEL,
+            device=self.device
+        )
 
         self.output_dir = Path(output_dir) if output_dir else None
         if self.output_dir:
@@ -298,7 +303,25 @@ class SyntheticDataGenerator:
                 gen_args["width"] = gen_args["resolution"][1]
                 del gen_args["resolution"]
 
-            truncated_prompt = truncate_prompt_if_too_long(prompt, self.model)
+            truncated_prompt = prompt
+
+            if hasattr(self.model, "tokenizer"):
+                clip_tokenizer = self.model.tokenizer
+                clip_tokens = clip_tokenizer(
+                    truncated_prompt,
+                    truncation=False
+                )["input_ids"]
+
+                if len(clip_tokens) > 77:
+                    bt.logging.warning(
+                        f"Prompt exceeds 77 CLIP tokens ({len(clip_tokens)}). Truncating."
+                    )
+                    clip_tokens = clip_tokens[:77]
+                    truncated_prompt = clip_tokenizer.decode(
+                        clip_tokens,
+                        skip_special_tokens=True
+                    )
+
             bt.logging.info(f"Generating media from prompt: {truncated_prompt}")
             bt.logging.info(f"Generation args: {gen_args}")
 
@@ -307,15 +330,15 @@ class SyntheticDataGenerator:
             # Create pipeline-specific generator
             generate = create_pipeline_generator(model_config, self.model)
 
-            # Handle autocast if needed
+
             if model_config.get("use_autocast", True):
                 pretrained_args = model_config.get("from_pretrained_args", {})
-                torch_dtype = pretrained_args.get("torch_dtype", torch.bfloat16)
+                torch_dtype = pretrained_args.get("torch_dtype", torch.float32 if self.device == "cuda" else torch.float16) 
                 with torch.autocast(self.device, torch_dtype, cache_enabled=False):
                     gen_output = generate(truncated_prompt, **gen_args)
             else:
                 gen_output = generate(truncated_prompt, **gen_args)
-            
+
             if task == "i2i":
                 bt.logging.info(f"I2I Debug: Generation complete, output type: {type(gen_output)}")
                 if hasattr(gen_output, 'images') and len(gen_output.images) > 0:
@@ -453,7 +476,7 @@ class SyntheticDataGenerator:
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
                 torch.cuda.synchronize()
-                
+
                 # Log memory stats
                 allocated = torch.cuda.memory_allocated() / 1024**3
                 reserved = torch.cuda.memory_reserved() / 1024**3
