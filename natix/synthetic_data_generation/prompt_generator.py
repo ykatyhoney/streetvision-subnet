@@ -154,9 +154,21 @@ class PromptGenerator:
     ) -> str:
         if label == 1:
             system_content = (
-                "[INST]Write a SINGLE sentence under 35 words. "
-                "Start with 'Photorealistic dashcam footage of active roadwork'. "
-                "Describe a realistic road scene. Avoid clutter. No filler text.[/INST]"
+                "[INST]Write ONE sentence under 40 words. "
+                "Start exactly with 'Photorealistic dashcam footage of active roadwork'. "
+
+                "The scene MUST clearly depict roadwork activity. "
+                "Include EXACTLY 1 primary element from: worker in safety vest, traffic cone, barrier, construction machine. "
+
+                "The element must appear at realistic scale and distance, integrated naturally into the road scene. "
+                "It must NOT be a close-up or dominate the frame. Avoid foreground exaggeration. "
+
+                "The camera perspective is from a moving vehicle, showing a wide road view. "
+
+                "Do NOT include unrelated scenes (traffic lights, random vehicles, cyclists, empty roads). "
+                "Do NOT change the count (e.g., if one cone is specified, show exactly one). "
+
+                "Ensure the scene cannot be mistaken for normal traffic.[/INST]"
             )
 
         elif label == 0:
