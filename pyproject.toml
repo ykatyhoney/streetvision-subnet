@@ -43,7 +43,7 @@ httpx = "^0.28.0"
 joblib = "^1.4.2"
 bittensor = "^9.9.0"
 h11 = "^0.16.0"
-bittensor-cli = "^9.10.1"
+bittensor-cli = "^9.18.0"
 cryptography = "^46.0.3"
 
 
