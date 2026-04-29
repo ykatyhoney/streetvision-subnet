@@ -19,16 +19,19 @@
 
 import re
 import time
+from io import BytesIO
 from typing import List
 import copy
 import ipaddress
 
 import bittensor as bt
 import numpy as np
-from httpx import HTTPStatusError, Client, Timeout, ReadTimeout
+from httpx import AsyncClient, HTTPStatusError, Client, Timeout, ReadTimeout
+from PIL import Image
 
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import apply_augmentation_by_level
+from natix.validator.api_client import build_auth_headers
 from natix.validator.config import CHALLENGE_TYPE, TARGET_IMAGE_SIZE
 from natix.validator.reward import get_rewards
 from natix.utils.wandb_utils import log_to_wandb
@@ -142,20 +145,56 @@ def statistics_report_task(
         return None
 
 
-def determine_challenge_type(media_cache, synthetic_cache, fake_prob=0.5):
+async def fetch_api_challenge(self, label: int) -> dict | None:
+    try:
+        async with AsyncClient(timeout=Timeout(30)) as client:
+            response = await client.post(
+                f"{self.config.proxy.proxy_client_url}/tasks/request",
+                headers=build_auth_headers(self.wallet),
+                json={"scoring_method": 0, "category": 0, "label": label},
+            )
+        if response.status_code == 404:
+            bt.logging.warning("[API] No benchmark tasks available")
+            return None
+        if response.status_code == 429:
+            bt.logging.warning("[API] Rate limited on /tasks/request")
+            return None
+        response.raise_for_status()
+        task = response.json()
+    except HTTPStatusError as e:
+        bt.logging.warning(f"[API] Task request failed: {e.response.status_code}")
+        return None
+    except Exception as e:
+        bt.logging.error(f"[API] Task request error: {e}")
+        return None
+
+    try:
+        async with AsyncClient(timeout=Timeout(30)) as client:
+            img_response = await client.get(task["s3_url"])
+            img_response.raise_for_status()
+        image = Image.open(BytesIO(img_response.content)).convert("RGB")
+    except Exception as e:
+        bt.logging.error(f"[API] Failed to download task image: {e}")
+        return None
+
+    return {"image": image, "label": int(task["label"]), "task_id": task["task_id"]}
+
+
+def determine_challenge_type(media_cache, synthetic_cache):
     modality = "image"
     label = np.random.choice(list(CHALLENGE_TYPE.keys()))
 
-    use_synthetic = np.random.rand() < fake_prob
+    source = np.random.choice(["synthetic", "real", "api"])
 
-    if use_synthetic:
+    if source == "synthetic":
         task = "i2i" if np.random.rand() < 0.5 else "t2i"
         cache = synthetic_cache[modality][task]
-        source = "synthetic"
-    else:
-        cache = media_cache["Roadwork"][modality]
+    elif source == "real":
         task = "real"
-        source = "real"
+        cache = media_cache["Roadwork"][modality]
+    else:  # api
+        task = "api"
+        cache = None
 
     return label, modality, task, cache, source
 
@@ -180,25 +219,27 @@ async def forward(self):
     challenge_metadata = {}  # for bookkeeping
     challenge = {}  # for querying miners
     label, modality, source_model_task, cache, source = determine_challenge_type(
-        self.media_cache, self.synthetic_media_cache, self._fake_prob
+        self.media_cache, self.synthetic_media_cache
     )
     challenge_metadata["label"] = label
     challenge_metadata["modality"] = modality
     challenge_metadata["source_model_task"] = source_model_task
     challenge_metadata["source"] = source
 
-    bt.logging.info(
-        f"Sampling {source} {modality} from {source_model_task if source == 'synthetic' else 'real'} cache"
-    )
+    bt.logging.info(f"Sampling {source} {modality} challenge (label={label})")
 
     if modality != "image":
         bt.logging.error(f"Unexpected modality: {modality}")
         return
+    elif source == "api":
+        challenge = await fetch_api_challenge(self, label)
+        if challenge is not None:
+            label = challenge["label"]
     else:
         challenge = cache.sample(label)
 
     if challenge is None:
-        bt.logging.warning("Waiting for cache to populate. Challenge skipped.")
+        bt.logging.warning("Challenge unavailable. Skipping.")
         return
 
     # update logging dict with everything except image data
@@ -308,4 +349,5 @@ async def forward(self):
 
     # ensure state is saved after each challenge
     self.save_miner_history()
-    cache._prune_extracted_cache()
+    if cache is not None:
+        cache._prune_extracted_cache()

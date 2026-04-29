@@ -91,11 +91,11 @@ The label is still determined before the source is selected (as today). If the A
   - In `forward.py`: update `statistics_report_task` → new path
   - Inject auth headers into both calls
 
-- [ ] **Step 3 — Add API task helper**
+- [x] **Step 3 — Add API task helper**
   - Add `fetch_api_challenge(wallet, api_url, category, label) -> dict | None` in `forward.py` or `api_client.py`
   - Calls `POST /tasks/request`, downloads image from S3 URL, returns `{"image": PIL.Image, "label": int, "task_id": str}`
 
-- [ ] **Step 4 — Extend `determine_challenge_type`**
+- [x] **Step 4 — Extend `determine_challenge_type`**
   - Add `"api"` as a third source option (uniform 1/3 probability each)
   - Update `forward()` to handle the new source branch
 
