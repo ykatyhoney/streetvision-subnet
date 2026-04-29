@@ -3,14 +3,11 @@ import base64
 import os
 import random
 import socket
-import traceback
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 import bittensor as bt
 from httpx import HTTPStatusError, Client, Timeout, ReadTimeout
 import uvicorn
-from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from fastapi import Depends, FastAPI, HTTPException, Request
 from PIL import Image
 
@@ -36,11 +33,6 @@ class ValidatorProxy:
         validator,
     ):
         self.validator = validator
-        try:
-            self.get_credentials()
-        except Exception as e:
-            bt.logging.warning(e)
-            bt.logging.warning("Warning, proxy can't ping to proxy-client.")
         self.miner_request_counter = {}
         self.dendrite = bt.dendrite(wallet=validator.wallet)
         self.app = FastAPI()
@@ -84,94 +76,15 @@ class ValidatorProxy:
             self.start_server()
 
 
-    def get_credentials(self):
-        try:
-            v_uid_ip = self.validator.metagraph.axons[self.validator.uid].ip
-            bt.logging.info(f"Valdiator public: {v_uid_ip}")
-            with Client(timeout=Timeout(30)) as client:
-                response = client.post(
-                    f"{self.validator.config.proxy.proxy_client_url}/credentials",
-                    headers={
-                        "X-Forwarded-For": v_uid_ip
-                    },
-                    json={
-                        "postfix": (
-                            f":{self.validator.config.proxy.port}/validator_proxy"
-                            if self.validator.config.proxy.port
-                            else ""
-                        ),
-                        "uid": self.validator.uid,
-                    },
-                )
-
-            response.raise_for_status()
-            response = response.json()
-            message = response["message"]
-            signature = base64.b64decode(response["signature"])
-
-            def verify_credentials(public_key_bytes):
-                public_key = Ed25519PublicKey.from_public_bytes(public_key_bytes)
-                try:
-                    public_key.verify(signature, message.encode("utf-8"))
-                except InvalidSignature:
-                    raise Exception("Invalid signature")
-
-            self.verify_credentials = verify_credentials
-
-        except ReadTimeout as e:
-            bt.logging.warning(f"Credential request timed out")
-            return None
-
-        except HTTPStatusError as e:
-            try:
-                error_detail = e.response.json()
-            except Exception:
-                error_detail = e.response.text
-
-            bt.logging.warning(f"Credential request failed: {error_detail}")
-            bt.logging.warning("Warning, proxy can't ping to proxy-client.")
-            return None
-
-        except Exception as e:
-            bt.logging.exception(
-                f"Unexpected error while getting credentials: {e}")
-            return None
-
     def start_server(self):
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.executor.submit(uvicorn.run, self.app, host="0.0.0.0",
                              port=self.validator.config.proxy.port)
 
-    def authenticate_token(self, public_key_bytes):
-        public_key_bytes = base64.b64decode(public_key_bytes)
-        try:
-            self.verify_credentials(public_key_bytes)
-            bt.logging.info("Successfully authenticated token")
-            return public_key_bytes
-        except Exception as e:
-            bt.logging.error(
-                f"Exception occurred in authenticating token: {e}")
-            bt.logging.error(traceback.print_exc())
-            raise HTTPException(
-                status_code=401, detail="Error getting authentication token")
-
     async def healthcheck(self, request: Request):
-        authorization: str = request.headers.get("authorization")
-
-        if not authorization:
-            raise HTTPException(
-                status_code=401, detail="Authorization header missing")
-
-        self.authenticate_token(authorization)
         return {"status": "healthy"}
 
     async def forward(self, request: Request):
-        authorization: str = request.headers.get("authorization")
-        if not authorization:
-            raise HTTPException(
-                status_code=401, detail="Authorization header missing")
-        self.authenticate_token(authorization)
-
         bt.logging.info("Received an organic request!")
         payload = await request.json()
 

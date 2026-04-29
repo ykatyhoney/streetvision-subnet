@@ -81,7 +81,7 @@ The label is still determined before the source is selected (as today). If the A
 
 ## Implementation Steps
 
-- [ ] **Step 1 — Auth helper**
+- [x] **Step 1 — Auth helper**
   - Add `build_auth_headers(wallet) -> dict` in `natix/validator/api_client.py` (new small file)
   - Signs `str(int(time.time()))` with `wallet.hotkey.sign()`
   - Returns `{"x-hotkey": ..., "x-signature": ..., "x-timestamp": ...}`
