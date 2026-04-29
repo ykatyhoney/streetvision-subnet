@@ -49,7 +49,7 @@ class ValidatorProxy:
                 response = await client.post(
                     f"{api_url}/tasks/request",
                     headers=build_auth_headers(wallet),
-                    json={"scoring_method": 1},
+                    json={"scoring_method": 1, "category": 0},
                 )
             if response.status_code == 404:
                 bt.logging.info("[ORGANIC] No consensus tasks available")
