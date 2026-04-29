@@ -5,7 +5,7 @@ set -a
 source validator.env
 set +a
 
-: ${VALIDATOR_PROXY_PORT:=10913}
+: ${ORGANIC_POLL_INTERVAL_SECONDS:=360}
 : ${DEVICE:=cuda}
 
 VALIDATOR_PROCESS_NAME="natix_validator"
@@ -32,6 +32,6 @@ poetry run python neurons/validator.py \
   --wallet.name $WALLET_NAME \
   --wallet.hotkey $WALLET_HOTKEY \
   --axon.port $VALIDATOR_AXON_PORT \
-  --proxy.port $VALIDATOR_PROXY_PORT \
-  --proxy.proxy_client_url $PROXY_CLIENT_URL\
+  --proxy.proxy_client_url $PROXY_CLIENT_URL \
+  --organic.poll_interval_seconds $ORGANIC_POLL_INTERVAL_SECONDS \
   --logging.debug

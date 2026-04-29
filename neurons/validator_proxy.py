@@ -1,178 +1,154 @@
 import asyncio
-import base64
-import os
-import random
-import socket
-from concurrent.futures import ThreadPoolExecutor
+import threading
+import time
 from io import BytesIO
+
 import bittensor as bt
-from httpx import HTTPStatusError, Client, Timeout, ReadTimeout
-import uvicorn
-from fastapi import Depends, FastAPI, HTTPException, Request
+import httpx
 from PIL import Image
 
 from natix.protocol import prepare_synapse
-from natix.utils.image_transforms import get_base_transforms
+from natix.utils.image_transforms import apply_augmentation_by_level
+from natix.validator.api_client import build_auth_headers
 from natix.validator.config import TARGET_IMAGE_SIZE
-from natix.validator.proxy import ProxyCounter
-from natix.validator.organic_task_distributor import OrganicTaskDistributor
-
-base_transforms = get_base_transforms(TARGET_IMAGE_SIZE)
-
-
-def preprocess_image(b64_image):
-    image_bytes = base64.b64decode(b64_image)
-    image_buffer = BytesIO(image_bytes)
-    pil_image = Image.open(image_buffer)
-    return base_transforms(pil_image)
+from natix.validator.forward import (
+    fix_ip_format,
+    statistics_assign_task,
+    statistics_report_task,
+)
+from natix.validator.reward import get_rewards
 
 
 class ValidatorProxy:
-    def __init__(
-        self,
-        validator,
-    ):
+    def __init__(self, validator):
         self.validator = validator
-        self.miner_request_counter = {}
-        self.dendrite = bt.dendrite(wallet=validator.wallet)
-        self.app = FastAPI()
-        self.app.add_api_route(
-            "/validator_proxy",
-            self.forward,
-            methods=["POST"],
-            dependencies=[Depends(self.get_self)],
+        self.poll_interval = validator.config.organic.poll_interval_seconds
+        threading.Thread(target=self._run_poll_loop, daemon=True).start()
+
+    def _run_poll_loop(self):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        dendrite = bt.dendrite(wallet=self.validator.wallet)
+        loop.run_until_complete(self._poll_loop(dendrite))
+
+    async def _poll_loop(self, dendrite):
+        while True:
+            try:
+                await self._poll_and_distribute(dendrite)
+            except Exception as e:
+                bt.logging.error(f"[ORGANIC] Consensus poll error: {e}")
+            await asyncio.sleep(self.poll_interval)
+
+    async def _poll_and_distribute(self, dendrite):
+        api_url = self.validator.config.proxy.proxy_client_url
+        wallet = self.validator.wallet
+
+        # Request a consensus task from the API
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(30)) as client:
+                response = await client.post(
+                    f"{api_url}/tasks/request",
+                    headers=build_auth_headers(wallet),
+                    json={"scoring_method": 1},
+                )
+            if response.status_code == 404:
+                bt.logging.info("[ORGANIC] No consensus tasks available")
+                return
+            if response.status_code == 429:
+                retry_after = response.json().get("retry_after", self.poll_interval)
+                bt.logging.warning(f"[ORGANIC] Rate limited, retry after {retry_after}s")
+                await asyncio.sleep(int(retry_after))
+                return
+            response.raise_for_status()
+            task = response.json()
+        except httpx.HTTPStatusError as e:
+            bt.logging.warning(f"[ORGANIC] Task request failed: {e.response.status_code}")
+            return
+        except Exception as e:
+            bt.logging.error(f"[ORGANIC] Task request error: {e}")
+            return
+
+        task_id = task["task_id"]
+        s3_url = task["s3_url"]
+        category = task["category"]
+        bt.logging.info(f"[ORGANIC] Got consensus task {task_id}, category={category}")
+
+        # Download image from presigned S3 URL
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(30)) as client:
+                img_response = await client.get(s3_url)
+                img_response.raise_for_status()
+            image = Image.open(BytesIO(img_response.content)).convert("RGB")
+        except Exception as e:
+            bt.logging.error(f"[ORGANIC] Failed to download task image: {e}")
+            return
+
+        # Apply augmentation
+        try:
+            image, _, _ = apply_augmentation_by_level(image, TARGET_IMAGE_SIZE, None)
+        except Exception as e:
+            bt.logging.warning(f"[ORGANIC] Augmentation failed: {e}")
+
+        # Sample miner UIDs
+        miner_uids = self.validator.organic_uid_deck.next_k(
+            k=self.validator.config.neuron.sample_size,
+            metagraph=self.validator.metagraph,
+            vpermit_tao_limit=self.validator.config.neuron.vpermit_tao_limit,
+            exclude=None,
         )
-        self.app.add_api_route(
-            "/health/liveness",
-            self.healthcheck,
-            methods=["GET"],
-            dependencies=[Depends(self.get_self)],
-        )
+        if not miner_uids:
+            bt.logging.warning("[ORGANIC] No eligible miners available")
+            return
 
-        self.loop = asyncio.get_event_loop()
-        self.proxy_counter = ProxyCounter(os.path.join(
-            self.validator.config.neuron.full_path, "proxy_counter.json"))
-
-        # Initialize organic task distributor
-        self.organic_distributor = OrganicTaskDistributor(
-            validator=validator,
-            miners_per_task=getattr(
-                self.validator.config.organic, 'miners_per_task', 3),
-            deduplication_window_seconds=getattr(
-                self.validator.config.organic, 'deduplication_window_seconds', 300),
-            miner_cooldown_seconds=getattr(
-                self.validator.config.organic, 'miner_cooldown_seconds', 60),
-            max_concurrent_tasks=getattr(
-                self.validator.config.organic, 'max_concurrent_tasks', 10),
-            stagger_delay_range=(
-                getattr(self.validator.config.organic,
-                        'stagger_delay_min', 0.1),
-                getattr(self.validator.config.organic,
-                        'stagger_delay_max', 2.0)
-            )
-        )
-
-        if self.validator.config.proxy.port:
-            self.start_server()
-
-
-    def start_server(self):
-        self.executor = ThreadPoolExecutor(max_workers=1)
-        self.executor.submit(uvicorn.run, self.app, host="0.0.0.0",
-                             port=self.validator.config.proxy.port)
-
-    async def healthcheck(self, request: Request):
-        return {"status": "healthy"}
-
-    async def forward(self, request: Request):
-        bt.logging.info("Received an organic request!")
-        payload = await request.json()
-
-        if "seed" not in payload:
-            payload["seed"] = random.randint(0, int(1e9))
-
-        image = preprocess_image(payload["image"])
-        image_bytes = base64.b64decode(payload["image"])
+        axons = [fix_ip_format(self.validator.metagraph.axons[uid]) for uid in miner_uids]
         synapse = prepare_synapse(image, modality="image")
-        additional_params = {"seed": payload["seed"]}
 
-        task_result = await self.organic_distributor.distribute_task(
-            image_data=image_bytes,
-            synapse=synapse,
-            additional_params=additional_params
+        # Report task assignment to statistics
+        statistics_response = statistics_assign_task(
+            self.validator,
+            miner_uid_list=miner_uids,
+            type=1,  # Consensus — will become scoring_method in Step 2
+            label=0,
+            payload_ref=synapse.image,
         )
 
-        bt.logging.info(f"[ORGANIC] Task result: {task_result}")
+        # Query miners
+        bt.logging.info(f"[ORGANIC] Sending consensus task to {len(miner_uids)} miners")
+        start = time.time()
+        responses = await dendrite(
+            axons=axons, synapse=synapse, deserialize=False, timeout=9
+        )
+        predictions = [x.prediction for x in responses]
+        bt.logging.info(f"[ORGANIC] Responses received in {time.time() - start:.1f}s")
 
-        if task_result['status'] == 'duplicate':
-            bt.logging.info(
-                f"[ORGANIC] Duplicate task {task_result['task_hash']}")
-            self.proxy_counter.update(is_success=False)
-            self.proxy_counter.save()
-            raise HTTPException(status_code=429, detail="Duplicate task within time window")
+        # Determine consensus label from majority vote of valid predictions
+        valid_preds = [p for p in predictions if p != -1]
+        if not valid_preds:
+            bt.logging.warning("[ORGANIC] No valid predictions received")
+            return
+        consensus_label = round(sum(valid_preds) / len(valid_preds))
 
-        elif task_result['status'] == 'rejected':
-            bt.logging.warning(
-                f"[ORGANIC] Task rejected: {task_result.get('reason', 'unknown')}")
-            self.proxy_counter.update(is_success=False)
-            self.proxy_counter.save()
-            raise HTTPException(status_code=503, detail=f"Task rejected: {task_result.get('reason', 'unknown')}")
+        # Report miner responses to statistics
+        if statistics_response:
+            statistics_report_task(
+                self.validator,
+                miner_uid_list=miner_uids,
+                predictions=predictions,
+                task_id=statistics_response["id"],
+            )
 
-        elif task_result['status'] == 'error':
-            bt.logging.error(
-                f"[ORGANIC] Task error: {task_result.get('error', 'unknown')}")
-            self.proxy_counter.update(is_success=False)
-            self.proxy_counter.save()
-            raise HTTPException(status_code=500, detail="Internal server error")
+        # Score miners and update validator state
+        rewards, _ = get_rewards(
+            label=consensus_label,
+            responses=predictions,
+            uids=miner_uids,
+            axons=axons,
+            performance_trackers=self.validator.performance_trackers,
+        )
+        self.validator.update_scores(rewards, miner_uids)
 
-        elif task_result['status'] == 'completed':
-            valid_results = task_result['valid_results']
-
-            if valid_results:
-                self.proxy_counter.update(is_success=True)
-                self.proxy_counter.save()
-                valid_preds = [result['result'] for result in valid_results]
-                valid_pred_uids = [result['miner_uid']
-                                   for result in valid_results]
-
-                data = {
-                    "preds": [float(p) for p in valid_preds],
-                    "fqdn": socket.getfqdn(),
-                    "task_hash": task_result['task_hash'],
-                    "miners_queried": task_result['total_miners_queried'],
-                    "valid_responses": task_result['valid_responses']
-                }
-
-                rich_response: bool = payload.get(
-                    "rich", "false").lower() == "true"
-                if rich_response:
-                    metagraph = self.validator.metagraph
-                    data["uids"] = [int(uid) for uid in valid_pred_uids]
-                    data["ranks"] = [float(metagraph.R[uid])
-                                     for uid in valid_pred_uids]
-                    data["incentives"] = [
-                        float(metagraph.I[uid]) for uid in valid_pred_uids]
-                    data["emissions"] = [float(metagraph.E[uid])
-                                         for uid in valid_pred_uids]
-                    data["hotkeys"] = [str(metagraph.hotkeys[uid])
-                                       for uid in valid_pred_uids]
-                    data["coldkeys"] = [str(metagraph.coldkeys[uid])
-                                        for uid in valid_pred_uids]
-                    data["selected_miners"] = task_result['selected_miners']
-                    data["distribution_stats"] = self.organic_distributor.get_statistics()
-
-                bt.logging.success(
-                    f"[ORGANIC] Successfully processed task {task_result['task_hash']}: {len(valid_preds)} valid responses")
-                return data
-            else:
-                self.proxy_counter.update(is_success=False)
-                self.proxy_counter.save()
-                raise HTTPException(status_code=500, detail="No valid responses received")
-
-        # Fallback
-        self.proxy_counter.update(is_success=False)
-        self.proxy_counter.save()
-        raise HTTPException(status_code=500, detail="Unknown task status")
-
-    async def get_self(self):
-        return self
+        bt.logging.success(
+            f"[ORGANIC] Task {task_id} complete | consensus_label={consensus_label} | "
+            f"{len(valid_preds)}/{len(miner_uids)} valid responses"
+        )
+        self.validator.save_miner_history()

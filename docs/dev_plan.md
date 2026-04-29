@@ -99,18 +99,18 @@ The label is still determined before the source is selected (as today). If the A
   - Add `"api"` as a third source option (uniform 1/3 probability each)
   - Update `forward()` to handle the new source branch
 
-- [ ] **Step 5 — Consensus task poller**
+- [x] **Step 5 — Consensus task poller**
   - Add `poll_consensus_tasks(self)` async loop in `validator_proxy.py` or a new `natix/validator/consensus_poller.py`
   - Reads `ORGANIC_POLL_INTERVAL_SECONDS` (default 360) from env / config
   - Calls `POST /tasks/request` with `scoring_method=1`, distributes to miners, reports stats
   - Launched as a background task from `ValidatorProxy.__init__` (or from `validator.py`)
 
-- [ ] **Step 6 — Strip the inbound server**
+- [x] **Step 6 — Strip the inbound server**
   - Remove `FastAPI` server, `OrganicTaskDistributor`, `ProxyCounter`, `get_credentials`, `start_server`, `authenticate_token`, `verify_credentials`, inbound `forward()` handler, `healthcheck`
   - Remove `proxy.port` dependency
   - Keep only the outbound organic poller started in `__init__`
 
-- [ ] **Step 7 — Config / env**
+- [x] **Step 7 — Config / env**
   - Add `ORGANIC_POLL_INTERVAL_SECONDS=360` to `validator.env.example`
   - Wire it into `validator_config.py` (or wherever env vars are read)
 

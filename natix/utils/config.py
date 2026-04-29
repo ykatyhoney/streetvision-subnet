@@ -324,13 +324,6 @@ def add_validator_args(cls, parser):
     )
 
     parser.add_argument(
-        "--proxy.port",
-        type=int,
-        help="The port to run the proxy on.",
-        default=10913,
-    )
-
-    parser.add_argument(
         "--proxy.proxy_client_url",
         type=str,
         help="The url initialize credentials for proxy.",
@@ -338,45 +331,10 @@ def add_validator_args(cls, parser):
     )
 
     parser.add_argument(
-        "--organic.miners_per_task",
+        "--organic.poll_interval_seconds",
         type=int,
-        help="Number of miners to query per organic task.",
-        default=3,
-    )
-
-    parser.add_argument(
-        "--organic.deduplication_window_seconds",
-        type=int,
-        help="Time window in seconds to check for duplicate organic tasks.",
-        default=300,
-    )
-
-    parser.add_argument(
-        "--organic.miner_cooldown_seconds",
-        type=int,
-        help="Cooldown period in seconds before reassigning similar tasks to the same miner.",
-        default=60,
-    )
-
-    parser.add_argument(
-        "--organic.max_concurrent_tasks",
-        type=int,
-        help="Maximum number of concurrent organic tasks.",
-        default=10,
-    )
-
-    parser.add_argument(
-        "--organic.stagger_delay_min",
-        type=float,
-        help="Minimum delay in seconds between staggered miner queries.",
-        default=0.1,
-    )
-
-    parser.add_argument(
-        "--organic.stagger_delay_max",
-        type=float,
-        help="Maximum delay in seconds between staggered miner queries.",
-        default=2.0,
+        help="How often (in seconds) the validator polls the API for consensus tasks.",
+        default=360,
     )
 
 
