@@ -14,7 +14,7 @@ Create ARCHITECTURE.md, TASKS.md, TECH_DECISIONS.md, PROJECT_STATUS.md, SPECIFIC
 
 ---
 
-## Step 2 — Drop Poetry, switch to pip + venv, and isolate dependencies
+## Step 2 — Drop Poetry, switch to pip + venv, and isolate dependencies ✅
 
 **Goal:** Miner and validator can be installed independently using plain pip and a standard venv. Drop Poetry entirely. DL libraries (torch, diffusers, etc.) become optional extras for the validator.
 
@@ -24,17 +24,19 @@ Create ARCHITECTURE.md, TASKS.md, TECH_DECISIONS.md, PROJECT_STATUS.md, SPECIFIC
 
 1. Migrate `pyproject.toml` to PEP 621 format:
    - Move deps from `[tool.poetry.dependencies]` to `[project.dependencies]` (core deps only)
-   - Add `[project.optional-dependencies]` with three groups:
+   - Add `[project.optional-dependencies]` with four groups:
      - `miner` — torch==2.2.0, torchvision==0.17.0, torchaudio==2.2.0, timm, ultralytics, opencv-python, scikit-image, scikit-learn
-     - `validator` — wandb, joblib, tensorboardx (core validator, no DL)
-     - `validator-synthetic` — torch==2.2.0, torchvision==0.17.0, torchaudio==2.2.0, transformers, diffusers, accelerate, sentencepiece, timm, einops, datasets, scikit-image, opencv-python, scikit-learn
+     - `validator` — wandb, joblib, tensorboardx (core loop only, no DL, no heavy image processing)
+     - `validator-image` — datasets, opencv-python, scikit-image, scikit-learn (HuggingFace cache + augmentation)
+     - `validator-synthetic` — torch, torchvision, transformers, diffusers, accelerate, etc. (background synthetic generation process)
+   - Add `dev` group for tooling (pytest, black, flake8, etc.)
    - Switch build backend from `poetry-core` to `hatchling`
    - Keep `requires-python = ">=3.10,<3.12"` (Python 3.11 required for bittensor 9.9.0)
 
 2. Replace `requirements.txt` with role-specific files:
-   - `requirements.miner.txt` — `.[miner]` pinned (generated via `pip freeze`)
-   - `requirements.validator.txt` — `.[validator]` pinned
-   - `requirements.validator-full.txt` — `.[validator,validator-synthetic]` pinned
+   - `requirements.miner.txt` — flat deps for miner Docker image
+   - `requirements.validator.txt` — flat deps for validator (core + image pipeline, no DL)
+   - `requirements.validator-full.txt` — flat deps for validator with synthetic generation
 
 3. Update `Dockerfile.miner` and `Dockerfile.validator` to use pip + the appropriate requirements file
 

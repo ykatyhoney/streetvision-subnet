@@ -9,7 +9,7 @@ Snapshot of the project state as of 2026-05-02. Update this file after completin
 | Step | Description | Status |
 |------|-------------|--------|
 | 1 | Create migration documentation | ✅ Done |
-| 2 | Dependency isolation (Poetry extras) | ⬜ Not started |
+| 2 | Drop Poetry, pip + venv, dependency isolation | ✅ Done |
 | 3 | Fix `protocol.py` dependency inversion | ⬜ Not started |
 | 4 | Move `base_miner/` → `natix/miner/` | ⬜ Not started |
 | 5 | Move `natix/synthetic_data_generation/` → `natix/validator/synthetic/` | ⬜ Not started |
@@ -47,25 +47,21 @@ Snapshot of the project state as of 2026-05-02. Update this file after completin
 
 ---
 
-## Current dependency footprint
+## Dependency footprint (post Step 2)
 
-All packages in one `pyproject.toml`, everyone installs everything:
-- torch 2.2.0
-- torchvision 0.17.0
-- torchaudio 2.2.0
-- transformers ~4.45.0
-- diffusers ^0.32.2
-- accelerate ^1.2.0
-- ultralytics ^8.3.44
-- opencv-python ^4.10.0.84
-- scikit-image ^0.24.0
-- datasets ^3.1.0
-- (+ bittensor, wandb, httpx, etc.)
+Four independently installable extras groups in `pyproject.toml`:
 
-Target after Step 2:
-- **Validator core** install: bittensor, httpx, Pillow, numpy, wandb, loguru, pydantic, joblib — no DL
-- **Validator + synthetic** install: adds torch, torchvision, diffusers, transformers
-- **Miner install**: torch, torchvision, timm, ultralytics, opencv-python
+| Install command | Gets |
+|----------------|------|
+| `pip install -e ".[miner]"` | torch, timm, ultralytics, opencv, scikit-image |
+| `pip install -e ".[validator]"` | wandb, joblib — no DL, no heavy image libs |
+| `pip install -e ".[validator,validator-image]"` | + datasets, opencv, scikit-image |
+| `pip install -e ".[validator,validator-image,validator-synthetic]"` | + torch, diffusers, transformers |
+
+Requirements files for Docker:
+- `requirements.miner.txt`
+- `requirements.validator.txt` (core + image pipeline)
+- `requirements.validator-full.txt` (core + image + synthetic)
 
 ---
 

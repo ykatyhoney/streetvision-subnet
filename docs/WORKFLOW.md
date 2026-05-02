@@ -23,9 +23,10 @@ poetry install
 python3.11 -m venv venv
 source venv/bin/activate
 
-pip install -e ".[miner]"                          # miner only
-pip install -e ".[validator]"                      # validator core (no DL)
-pip install -e ".[validator,validator-synthetic]"  # full validator
+pip install -e ".[miner]"                                              # miner only
+pip install -e ".[validator]"                                          # validator core (no DL, no image processing)
+pip install -e ".[validator,validator-image]"                          # validator + cache/augmentation, no DL
+pip install -e ".[validator,validator-image,validator-synthetic]"      # full validator
 ```
 
 ---
@@ -114,14 +115,17 @@ flake8 natix/ neurons/
 After Step 2, test that each extras group installs only what it should:
 
 ```bash
-# Isolated venv — validator core only
+# Isolated venv — validator core only (no DL, no image processing)
 python3.11 -m venv /tmp/test_validator
 /tmp/test_validator/bin/pip install -e ".[validator]"
 
 # Should fail — torch must not be present
 /tmp/test_validator/bin/python -c "import torch" && echo "FAIL: torch leaked" || echo "OK"
+# Should fail — opencv must not be present
+/tmp/test_validator/bin/python -c "import cv2" && echo "FAIL: cv2 leaked" || echo "OK"
 
-# Should succeed — protocol importable without torch
+# NOTE: protocol.py still imports torch at module level — this will fail until Step 3.
+# After Step 3, the following should succeed:
 /tmp/test_validator/bin/python -c "from natix.protocol import ImageSynapse; print('OK')"
 ```
 
