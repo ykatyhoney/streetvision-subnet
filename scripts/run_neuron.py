@@ -41,18 +41,18 @@ def run_auto_update_self_heal(neuron_type, auto_update, self_heal):
 
                     print("Running the autoupdate steps...")
                     # Trigger shell script. Make sure this file path starts from root
-                    os.system(f"./autoupdate_{neuron_type}_steps.sh")
+                    os.system(f"./scripts/autoupdate_{neuron_type}_steps.sh")
                     time.sleep(20)
                     print("Finished running the autoupdate steps 😎")
                     print("Restarting neuron")
-                    os.system(f"./start_{neuron_type}.sh")
+                    os.system(f"./scripts/start_{neuron_type}.sh")
             else:
                 print("Repo is up-to-date.")
 
         if self_heal:
             # Check if it's time to restart the PM2 process
             if time.time() - last_restart_time >= RESTART_INTERVAL_HOURS * 3600:
-                os.system(f"./start_{neuron_type}.sh")
+                os.system(f"./scripts/start_{neuron_type}.sh")
                 last_restart_time = time.time()  # Reset the timer after the restart
 
 
@@ -72,9 +72,9 @@ if __name__ == "__main__":
     neuron_type = "miner" if args.miner else "validator"
 
     if args.clear_cache and args.validator:
-        os.system(f"./start_{neuron_type}.sh --clear-cache")
+        os.system(f"./scripts/start_{neuron_type}.sh --clear-cache")
     else:
-        os.system(f"./start_{neuron_type}.sh")
+        os.system(f"./scripts/start_{neuron_type}.sh")
 
     if not args.no_auto_update or not args.no_self_heal:
         run_auto_update_self_heal(neuron_type, auto_update=not args.no_auto_update, self_heal=not args.no_self_heal)

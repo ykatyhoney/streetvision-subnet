@@ -311,7 +311,7 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 
 ---
 
-## Step 14 — Consolidate root-level operational files into `scripts/`
+## Step 14 — Consolidate root-level operational files into `scripts/` ✅
 
 **Goal:** Reduce root clutter by moving operational shell scripts and PM2 configs into a `scripts/` directory. The root currently has 11 operational files that are not Python packaging conventions.
 

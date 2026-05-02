@@ -1,13 +1,6 @@
 # Development Workflow
 
-How to set up, run, and test the subnet during and after the migration. Written for an AI assistant that needs to verify changes work.
-
----
-
-## Repository layout
-
-- `main` — production-ready code
-- `development` — active development branch, all migration PRs target here
+How to set up, run, and contribute to the subnet.
 
 ---
 
@@ -31,7 +24,7 @@ pip install -e ".[validator,validator-image,validator-synthetic]"      # full va
 
 **Miner:**
 ```bash
-bash start_miner.sh
+bash scripts/start_miner.sh
 # or directly:
 venv/bin/python neurons/miner.py \
   --neuron.image_detector RoadworkDetector \
@@ -41,7 +34,7 @@ venv/bin/python neurons/miner.py \
 
 **Validator:**
 ```bash
-bash start_validator.sh
+bash scripts/start_validator.sh
 ```
 This launches three processes:
 1. `neurons/validator.py` — main forward loop
@@ -50,8 +43,8 @@ This launches three processes:
 
 **Individual background processes:**
 ```bash
-bash start_cache_updater.sh
-bash start_synthetic_generator.sh
+bash scripts/start_cache_updater.sh
+bash scripts/start_synthetic_generator.sh
 ```
 
 ---
@@ -83,63 +76,48 @@ Test layout:
 
 ---
 
-## Verifying a migration step
+## Branch model
 
-After each step, run this checklist:
+Two long-lived branches:
 
-```bash
-# 1. Imports still resolve
-python -c "from natix.protocol import ImageSynapse"
-python -c "from natix.miner.registry import DETECTOR_REGISTRY"  # after step 4
-python -c "from natix.validator.proxy import ValidatorProxy"      # after step 6
+- `main` — production-ready code; only updated via reviewed PRs
+- `development` — active development; all feature branches and PRs target here
 
-# 2. Entry points show --help without error
-python neurons/miner.py --help
-python neurons/validator.py --help
+### Feature branches
 
-# 3. Full test suite
-pytest tests/
+- Branch from: `development`
+- Merge into: `development`
+- Naming: `feature/<ticket>/<descriptive-name>` (e.g. `feature/42/add-vit-detector`)
 
-# 4. Linting
-flake8 natix/ neurons/
-```
+Rebase frequently against `development` to avoid large conflicts at PR time. Delete the feature branch after merging.
 
----
+### Hotfix branches
 
-## Verifying dependency isolation (Step 2)
+- Branch from: `main`
+- Merge into: `main`, then back-merge into `development`
+- Naming: `hotfix/<version>/<description>` (e.g. `hotfix/1.2.1/fix-weight-nan`)
 
-After Step 2, test that each extras group installs only what it should:
+### Release branches
 
-```bash
-# Isolated venv — validator core only (no DL, no image processing)
-python3.11 -m venv /tmp/test_validator
-/tmp/test_validator/bin/pip install -e ".[validator]"
-
-# Should fail — torch must not be present
-/tmp/test_validator/bin/python -c "import torch" && echo "FAIL: torch leaked" || echo "OK"
-# Should fail — opencv must not be present
-/tmp/test_validator/bin/python -c "import cv2" && echo "FAIL: cv2 leaked" || echo "OK"
-
-# NOTE: protocol.py still imports torch at module level — this will fail until Step 3.
-# After Step 3, the following should succeed:
-/tmp/test_validator/bin/python -c "from natix.protocol import ImageSynapse; print('OK')"
-```
+- Branch from: `development`
+- Merge into: `development`, then `main` with a version tag
+- Naming: `release/<version>` (e.g. `release/2.0.0`)
 
 ---
 
-## Making a migration PR
+## Making a PR
 
-1. Work on `development` branch
-2. Each step = one PR (or one commit series on development)
-3. PR title format: `refactor(step-N): <description>` (e.g., `refactor(step-4): move base_miner to natix/miner`)
-4. Update `PROJECT_STATUS.md` in the same PR to mark the step done
-5. Run the verification checklist above before marking PR ready
+1. Branch from `development` using the naming convention above
+2. Each PR should cover one concern — feature, bug fix, or refactor, not a mix
+3. Title format: `type(scope): description` (e.g. `refactor(validator): split forward.py`)
+4. Update `docs/project-status.md` in the same PR when completing a migration step
+5. Run the verification checklist below before marking ready for review
 
 ---
 
-## Git strategy for moves
+## Git strategy for file moves
 
-Use `git mv` for directory renames to preserve file history:
+Use `git mv` to preserve file history:
 
 ```bash
 git mv base_miner natix/miner
@@ -151,7 +129,40 @@ After moving, update imports. Run tests. Commit as one atomic change.
 
 ---
 
-## Docker builds (verification in Step 10)
+## Verifying a change
+
+```bash
+# 1. Imports still resolve
+python -c "from natix.protocol import ImageSynapse"
+python -c "from natix.miner.registry import DETECTOR_REGISTRY"
+python -c "from natix.validator.proxy import ValidatorProxy"
+
+# 2. Entry points respond
+python neurons/miner.py --help
+python neurons/validator.py --help
+
+# 3. Tests
+pytest tests/
+
+# 4. Linting
+flake8 natix/ neurons/
+```
+
+---
+
+## Verifying dependency isolation
+
+```bash
+# Validator core — torch must not be present
+python3.11 -m venv /tmp/test_validator
+/tmp/test_validator/bin/pip install -e ".[validator]"
+/tmp/test_validator/bin/python -c "import torch" && echo "FAIL: torch leaked" || echo "OK"
+/tmp/test_validator/bin/python -c "from natix.protocol import ImageSynapse; print('OK')"
+```
+
+---
+
+## Docker builds
 
 ```bash
 docker build -f Dockerfile.miner -t natix-miner:test .

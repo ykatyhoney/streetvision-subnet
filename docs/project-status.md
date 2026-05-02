@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-05-03. Steps 11–13 done; 14 pending.
+Last updated: 2026-05-03. Migration complete — all 14 steps done.
 
 ---
 
@@ -21,13 +21,13 @@ Last updated: 2026-05-03. Steps 11–13 done; 14 pending.
 | 11 | Create `natix/validator/challenge/augmentation.py` | ✅ Done |
 | 12 | Move inference code out of `neurons/miner.py` | ✅ Done |
 | 13 | Create `natix/validator/scoring/` | ✅ Done |
-| 14 | Consolidate root-level operational files into `scripts/` | ⬜ Pending |
+| 14 | Consolidate root-level operational files into `scripts/` | ✅ Done |
 
 ---
 
 ## Current branch
 
-`re-architecture` — Steps 11–14 in progress.
+`re-architecture` — ready to merge to `main`.
 
 ---
 

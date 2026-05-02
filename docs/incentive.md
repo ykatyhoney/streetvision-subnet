@@ -16,11 +16,11 @@ The network employs a dynamic reward system to incentivize miners to continuousl
 Miners are rewarded based on their performance in classfiying construction sites. Their success rate, which determines their rank, is assessed by validators through a mix of organic tasks and tasks with known outcomes. This process ensures that miner models are accurately evaluated for their task performance.
 
 - **Initial Model Submission – Current Requirement:**
-  - Miners must <a href="Mining.md#Submitted-a-model">submit at least one model</a> to a publicly accessible repository on Hugging Face.
+  - Miners must <a href="mining.md#Submitted-a-model">submit at least one model</a> to a publicly accessible repository on Hugging Face.
   - Any models that classfiying construction sites is accpted
 
 - **Regular Model Submission and Reward Period – Future Plan:**
-  - Miners must <a href="Mining.md#Submitted-a-model">submit an improved model on a regular basis</a>.
+  - Miners must <a href="mining.md#Submitted-a-model">submit an improved model on a regular basis</a>.
   - For the first 45 days after a model is submitted, miners receive the full reward for tasks performed.
   - After 45 days, the reward gradually decreases toward zero, encouraging miners to submit enhanced models.
 

@@ -5,6 +5,5 @@
 # THIS FILE ITSELF MAY CHANGE FROM UPDATE TO UPDATE, SO WE CAN DYNAMICALLY FIX ANY ISSUES
 
 echo $CONDA_PREFIX
-./setup_env.sh
-rm -rf ~/.cache/natix
+./scripts/setup_env.sh
 echo "Autoupdate steps complete :)"
