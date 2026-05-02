@@ -200,7 +200,7 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 
 ---
 
-## Step 9 — Thin entry points in `neurons/`
+## Step 9 — Thin entry points in `neurons/` ✅
 
 **Goal:** `neurons/miner.py` and `neurons/validator.py` contain no business logic. They only parse arguments, instantiate the main class, and run the loop.
 

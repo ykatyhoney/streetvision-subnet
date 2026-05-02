@@ -16,7 +16,7 @@ Snapshot of the project state as of 2026-05-02. Update this file after completin
 | 6 | Move `neurons/validator_proxy.py` → `natix/validator/proxy/` | ✅ Done |
 | 7 | Split `natix/validator/forward.py` | ✅ Done |
 | 8 | Consolidate statistics reporting into `api_client.py` | ✅ Done |
-| 9 | Thin entry points in `neurons/` | ⬜ Not started |
+| 9 | Thin entry points in `neurons/` | ✅ Done |
 | 10 | Validation, cleanup, Dockerfile verification | ⬜ Not started |
 
 ---
