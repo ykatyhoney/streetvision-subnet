@@ -13,7 +13,7 @@ Snapshot of the project state as of 2026-05-02. Update this file after completin
 | 3 | Fix `protocol.py` dependency inversion | ✅ Done |
 | 4 | Move `base_miner/` → `natix/miner/` | ✅ Done |
 | 5 | Move `natix/synthetic_data_generation/` → `natix/validator/synthetic/` | ✅ Done |
-| 6 | Move `neurons/validator_proxy.py` → `natix/validator/proxy/` | ⬜ Not started |
+| 6 | Move `neurons/validator_proxy.py` → `natix/validator/proxy/` | ✅ Done |
 | 7 | Split `natix/validator/forward.py` | ⬜ Not started |
 | 8 | Consolidate statistics reporting into `api_client.py` | ⬜ Not started |
 | 9 | Thin entry points in `neurons/` | ⬜ Not started |

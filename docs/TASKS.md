@@ -132,7 +132,7 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 
 ---
 
-## Step 6 — Move `neurons/validator_proxy.py` → `natix/validator/proxy/`
+## Step 6 — Move `neurons/validator_proxy.py` → `natix/validator/proxy/` ✅
 
 **Goal:** Business logic out of the `neurons/` layer. `neurons/` should contain entry points only.
 

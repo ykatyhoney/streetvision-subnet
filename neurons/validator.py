@@ -39,7 +39,7 @@ from natix.validator.config import (
     WANDB_ENTITY,
 )
 from natix.validator.forward import forward
-from neurons.validator_proxy import ValidatorProxy
+from natix.validator.proxy import ValidatorProxy
 from natix.utils.uids import UIDDeck
 
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
