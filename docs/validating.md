@@ -30,14 +30,15 @@ Python **3.11** is required. Create a virtual environment and install validator 
 ```bash
 python3.11 -m venv venv
 source venv/bin/activate
-pip install -e ".[validator,validator-image]"
+pip install -r requirements.validator.txt
 ```
 
 To also run synthetic image generation (optional background process):
 
 ```bash
-pip install -e ".[validator,validator-image,validator-synthetic]"
+pip install -r requirements.validator-full.txt
 ```
+
 
 
 ## Acquiring a UID

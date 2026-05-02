@@ -8,6 +8,8 @@ set +a
 : ${ORGANIC_POLL_INTERVAL_SECONDS:=360}
 : ${DEVICE:=cuda}
 
+export PYTHONPATH=$(pwd):$PYTHONPATH
+
 VALIDATOR_PROCESS_NAME="natix_validator"
 DATA_GEN_PROCESS_NAME="natix_data_generator"
 CACHE_UPDATE_PROCESS_NAME="natix_cache_updater"
