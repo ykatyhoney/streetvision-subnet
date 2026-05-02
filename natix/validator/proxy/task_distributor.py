@@ -4,11 +4,11 @@ import random
 import time
 from collections import defaultdict, deque
 from typing import Dict, List, Optional, Tuple
-from httpx import HTTPStatusError, Client, Timeout, ReadTimeout
+from httpx import AsyncClient, Timeout
 
 import bittensor as bt
 
-from natix.validator.forward import statistics_assign_task
+from natix.validator.api_client import statistics_assign_task, statistics_report_task_single
 from natix.validator.utils import fix_ip_format
 
 
@@ -196,45 +196,6 @@ class OrganicTaskDistributor:
                 'timestamp': current_time
             }
 
-    def _statistics_report_task(self, miner_uid: int, prediction: float, task_id: str):
-        try:
-            payload = {
-                "validator_uid": int(self.validator.uid),
-                "miner_uid": miner_uid,
-                "prediction": prediction,
-                "task_id": str(task_id),
-            }
-
-            with Client(timeout=Timeout(30)) as client:
-                response = client.post(
-                    f"{self.validator.config.proxy.proxy_client_url}/organic_tasks/statistics/report",
-                    json=payload,
-                )
-
-            response.raise_for_status()
-            bt.logging.info("Successfully reported task responses to /statistics/report")
-            return response.json()
-
-        except ReadTimeout:
-            bt.logging.warning("Statistics report request timed out")
-            return None
-
-        except HTTPStatusError as e:
-            try:
-                error_detail = e.response.json()
-            except Exception:
-                error_detail = e.response.text
-
-            bt.logging.warning(f"Statistics assignment request failed: {error_detail}")
-            return None
-
-        except Exception as e:
-            bt.logging.exception(
-                f"Unexpected error while assigning task statistics: {e}"
-            )
-            return None
-
-
     def _generate_task_hash(self, image_data: bytes, additional_params: Optional[Dict] = None) -> str:
         """Generate a unique hash for the task based on image content and parameters."""
         hasher = hashlib.sha256()
@@ -342,10 +303,11 @@ class OrganicTaskDistributor:
                 bt.logging.info("result which should have prediction", result[0])
 
                 try:
-                    self._statistics_report_task(
+                    statistics_report_task_single(
+                        self.validator,
                         miner_uid=miner_uid,
                         prediction=result[0],
-                        task_id=task_id
+                        task_id=task_id,
                     )
                 except Exception as e:
                     bt.logging.error(

@@ -175,7 +175,7 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 
 ---
 
-## Step 8 — Consolidate statistics reporting into `api_client.py`
+## Step 8 — Consolidate statistics reporting into `api_client.py` ✅
 
 **Goal:** Eliminate the three copies of `statistics_assign_task` / `statistics_report_task`. One implementation, one place.
 

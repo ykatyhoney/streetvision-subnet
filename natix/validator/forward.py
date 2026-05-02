@@ -1,83 +1,15 @@
 import re
 import time
-from typing import List
 
 import bittensor as bt
-import numpy as np
-from httpx import Client, HTTPStatusError, ReadTimeout, Timeout
-
 from natix.constants import TARGET_IMAGE_SIZE
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import apply_augmentation_by_level
 from natix.utils.wandb_utils import log_to_wandb
+from natix.validator.api_client import statistics_assign_task, statistics_report_task_batch
 from natix.validator.challenge import determine_challenge_type, fetch_api_challenge
 from natix.validator.reward import get_rewards
 from natix.validator.utils import fix_ip_format
-
-
-def statistics_assign_task(self, miner_uid_list, type: int, label: int, payload_ref: str):
-    """Report a task assignment to the statistics API. Moved to api_client.py in Step 8."""
-    try:
-        payload = {
-            "validator_uid": int(self.uid),
-            "miner_uid_list": [int(uid) for uid in miner_uid_list],
-            "type": type,
-            "label": int(label),
-            "payload_ref": str(payload_ref),
-        }
-        with Client(timeout=Timeout(30)) as client:
-            response = client.post(
-                f"{self.config.proxy.proxy_client_url}/organic_tasks/statistics/assign",
-                json=payload,
-            )
-        response.raise_for_status()
-        bt.logging.info("Successfully reported task assignment to /statistics/assign")
-        return response.json()
-    except ReadTimeout:
-        bt.logging.warning("Statistics assignment request timed out")
-        return None
-    except HTTPStatusError as e:
-        try:
-            error_detail = e.response.json()
-        except Exception:
-            error_detail = e.response.text
-        bt.logging.warning(f"Statistics assignment request failed: {error_detail}")
-        return None
-    except Exception as e:
-        bt.logging.exception(f"Unexpected error while assigning task statistics: {e}")
-        return None
-
-
-def statistics_report_task(self, miner_uid_list: List[int], predictions: List[float], task_id: str):
-    """Report task responses to the statistics API. Moved to api_client.py in Step 8."""
-    try:
-        payload = {
-            "validator_uid": int(self.uid),
-            "miner_uid_list": [int(uid) for uid in miner_uid_list],
-            "predictions": [float(p) for p in predictions],
-            "task_id": str(task_id),
-        }
-        with Client(timeout=Timeout(30)) as client:
-            response = client.post(
-                f"{self.config.proxy.proxy_client_url}/organic_tasks/statistics/report",
-                json=payload,
-            )
-        response.raise_for_status()
-        bt.logging.info("Successfully reported task responses to /statistics/report")
-        return response.json()
-    except ReadTimeout:
-        bt.logging.warning("Statistics report request timed out")
-        return None
-    except HTTPStatusError as e:
-        try:
-            error_detail = e.response.json()
-        except Exception:
-            error_detail = e.response.text
-        bt.logging.warning(f"Statistics assignment request failed: {error_detail}")
-        return None
-    except Exception as e:
-        bt.logging.exception(f"Unexpected error while assigning task statistics: {e}")
-        return None
 
 
 async def forward(self):
@@ -128,7 +60,7 @@ async def forward(self):
     synapse = prepare_synapse(input_data, modality=modality)
 
     try:
-        statistics_response = statistics_assign_task(self, miner_uid_list=miner_uids, type=0, label=int(label), payload_ref=synapse.image)
+        statistics_response = statistics_assign_task(self, miner_uid_list=miner_uids, type=0, label=int(label), payload_ref=synapse.image)  # noqa: type shadowing
     except Exception as e:
         bt.logging.error(f"Failed to report task assignment to statistics: {e}")
 
@@ -139,7 +71,7 @@ async def forward(self):
     bt.logging.debug(f"Predictions of {source} challenge: {predictions}")
 
     try:
-        statistics_report_task(self, miner_uid_list=miner_uids, predictions=predictions, task_id=statistics_response["id"])
+        statistics_report_task_batch(self, miner_uid_list=miner_uids, predictions=predictions, task_id=statistics_response["id"])
     except Exception as e:
         bt.logging.error(f"Failed to report task responses to statistics: {e}")
 
