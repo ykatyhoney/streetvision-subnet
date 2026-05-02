@@ -1,6 +1,6 @@
 # Miner dependencies
-# Usage:  pip install -e ".[miner]"
-# Docker: pip install -r requirements.miner.txt && pip install -e "." --no-deps
+# Usage:  pip install -r requirements.miner.txt
+# Docker: pip install -r requirements.miner.txt
 
 # Core
 bittensor>=9.9.0,<10.0.0
@@ -12,7 +12,7 @@ h11>=0.16.0
 cryptography>=46.0.3
 cyscale>=0.3.3
 pyyaml>=6.0
-numpy>=1.26.0,<2.0
+numpy>=2.0.1,<3.0.0
 
 # Miner: model inference
 torch==2.2.0
