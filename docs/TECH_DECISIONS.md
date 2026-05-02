@@ -26,11 +26,11 @@ Records of significant architectural decisions — what was chosen, why, and wha
 
 **Install pattern:**
 - `pip install -e ".[miner]"` — miner only
-- `pip install -e ".[validator]"` — validator core (no DL)
-- `pip install -e ".[validator,validator-synthetic]"` — full validator with synthetic generation
-- `poetry install --extras "validator validator-synthetic"` — full validator
+- `pip install -e ".[validator]"` — validator core (no DL, no image processing)
+- `pip install -e ".[validator,validator-image]"` — validator + cache/augmentation
+- `pip install -e ".[validator,validator-image,validator-synthetic]"` — full validator
 
-**Alternative considered:** `requirements.miner.txt` / `requirements.validator.txt` flat files used by Docker only. Kept as a secondary artifact generated from the Poetry lockfile, but not the source of truth.
+**Alternative considered:** `requirements.miner.txt` / `requirements.validator.txt` flat files used by Docker only. Kept as secondary artifacts for Docker layer caching, not the source of truth.
 
 ---
 

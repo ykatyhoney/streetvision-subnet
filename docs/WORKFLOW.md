@@ -16,10 +16,6 @@ How to set up, run, and test the subnet during and after the migration. Written 
 Python 3.11 is required (bittensor 9.9.0 constraint). Use pyenv or asdf to manage versions.
 
 ```bash
-# Pre-migration (Poetry still in place)
-poetry install
-
-# Post-migration (Step 2+): plain pip + venv
 python3.11 -m venv venv
 source venv/bin/activate
 

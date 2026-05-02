@@ -11,4 +11,4 @@ BATCH_SIZE=${SYNTHETIC_BATCH_SIZE:-1}
 
 export TOKENIZERS_PARALLELISM=false
 
-poetry run python natix/validator/scripts/run_data_generator.py --batch-size $BATCH_SIZE
+./venv/bin/python natix/validator/scripts/run_data_generator.py --batch-size $BATCH_SIZE

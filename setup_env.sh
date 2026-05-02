@@ -30,9 +30,6 @@ sudo apt install -y \
 # Install process manager
 sudo npm install -g pm2@latest
 
-# Install Poetry
-curl -sSL https://install.python-poetry.org | python3 -
-
 ############################
 # Environment Files Setup  #
 ############################

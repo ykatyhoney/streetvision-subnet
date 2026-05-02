@@ -25,16 +25,19 @@ Clone the repository and navigate to the project directory:
 git clone https://github.com/natixnetwork/natix-subnet.git && cd natix-subnet
 ```
 
-We now use [Poetry](https://python-poetry.org/) for dependency management.  
-Make sure Poetry is installed, then activate the environment and install dependencies:
+Python **3.11** is required. Create a virtual environment and install validator dependencies:
 
 ```bash
-poetry env use python3.11
-poetry install
-poetry shell
+python3.11 -m venv venv
+source venv/bin/activate
+pip install -e ".[validator,validator-image]"
 ```
 
-Python **3.11** is the preferred version.
+To also run synthetic image generation (optional background process):
+
+```bash
+pip install -e ".[validator,validator-image,validator-synthetic]"
+```
 
 
 ## Acquiring a UID

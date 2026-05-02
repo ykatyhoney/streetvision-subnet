@@ -212,22 +212,16 @@ subnet/
 
 ## Dependency isolation (post-migration)
 
-Three installable groups using Poetry extras:
+Four installable extras groups in `pyproject.toml` (`[project.optional-dependencies]`).
+No Poetry — plain pip + venv.
 
-```toml
-[tool.poetry.extras]
-miner = ["torch", "torchvision", "timm", "ultralytics", "opencv-python", "scikit-image"]
-validator = ["wandb", "joblib"]  # core validator, no DL
-validator-synthetic = ["torch", "torchvision", "diffusers", "transformers", "accelerate",
-                       "sentencepiece", "timm", "einops", "datasets", "scikit-image",
-                       "opencv-python"]
-```
-
-Install commands:
 ```bash
-poetry install --extras miner              # miner only
-poetry install --extras validator          # validator core (no synthetic generation)
-poetry install --extras "validator validator-synthetic"  # full validator
+python3.11 -m venv venv && source venv/bin/activate
+
+pip install -e ".[miner]"                                          # miner only
+pip install -e ".[validator]"                                      # validator core (no DL, no image processing)
+pip install -e ".[validator,validator-image]"                      # + HuggingFace cache + augmentation
+pip install -e ".[validator,validator-image,validator-synthetic]"  # full validator
 ```
 
 Key principle: `natix.protocol`, `natix.base.*`, and `natix.utils.*` must be importable with **zero ML dependencies** (only `bittensor`, `httpx`, `Pillow`, `numpy`).

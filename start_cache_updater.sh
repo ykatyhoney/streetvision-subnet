@@ -5,4 +5,4 @@ set +a
 
 export PYTHONPATH=$(pwd):$PYTHONPATH
 
-poetry run python natix/validator/scripts/run_cache_updater.py
+./venv/bin/python natix/validator/scripts/run_cache_updater.py

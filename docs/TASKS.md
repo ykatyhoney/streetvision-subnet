@@ -222,9 +222,9 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 **Goal:** Confirm the full migration is correct and all install paths work.
 
 **Checklist:**
-- [ ] `poetry install --extras miner` — no torch for validator, no DL imports leak
-- [ ] `poetry install --extras validator` — no torch installed, validator core runs
-- [ ] `poetry install --extras "validator validator-synthetic"` — full validator with synthetic gen
+- [ ] `pip install -e ".[miner]"` in a fresh venv — no torch leaks to validator install
+- [ ] `pip install -e ".[validator]"` in a fresh venv — no torch installed, `import torch` fails
+- [ ] `pip install -e ".[validator,validator-image,validator-synthetic]"` — full validator installs cleanly
 - [ ] `python -c "from natix.protocol import ImageSynapse"` works without torch installed
 - [ ] `python neurons/miner.py --help` works
 - [ ] `python neurons/validator.py --help` works

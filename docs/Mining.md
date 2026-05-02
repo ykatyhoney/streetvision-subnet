@@ -24,15 +24,13 @@ Download the repository and navigate to the folder:
 git clone https://github.com/natixnetwork/natix-subnet.git && cd natix-subnet
 ```
 
-We recommend using a [Poetry](https://python-poetry.org/docs/) environment with Python 3.11 to manage dependencies:
+Python **3.11** is required. Create a virtual environment and install miner dependencies:
 
 ```bash
-curl -sSL https://install.python-poetry.org | python3 -
-poetry env use 3.11
-poetry install
+python3.11 -m venv venv
+source venv/bin/activate
+pip install -e ".[miner]"
 ```
-
-This will install all necessary dependencies and prepare your environment.
 
 ### Data
 
@@ -41,7 +39,7 @@ This will install all necessary dependencies and prepare your environment.
 Optionally, pre-download the training datasets by running:
 
 ```bash
-poetry run python natix/miner/datasets/download_data.py
+python natix/miner/datasets/download_data.py
 ```
 
 The default list of datasets and their download location is defined in `natix/miner/config.py`.
@@ -113,7 +111,7 @@ chmod +x ./start_miner.sh
 ./start_miner.sh
 ```
 
-This will launch `run_neuron.py` using Poetry.
+This will launch `neurons/miner.py` using the local venv.
 
 You can also optionally run a cache updater service to improve image caching performance:
 
