@@ -29,9 +29,6 @@ Last updated: 2026-05-02. Migration complete.
 
 ## Known remaining issues
 
-### `natix/validator/config.py` still imports torch and diffusers at module level
-The model configuration constants (`T2I_MODELS`, `I2I_MODELS`) embed torch dtypes and diffuser pipeline classes. Any import of `natix.validator.config` triggers these heavy imports. Fixing this requires splitting `config.py` into a core config (paths, constants) and a synthetic config (model definitions) — a natural follow-up once `natix/validator/synthetic/` is fully self-contained.
-
 ### Dockerfiles not smoke-tested post-migration
 `Dockerfile.miner` and `Dockerfile.validator` were updated in Step 2 but not built in CI. Verify with:
 ```bash

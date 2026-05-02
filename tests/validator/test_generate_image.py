@@ -4,7 +4,7 @@ import pytest
 from PIL import Image
 
 from natix.validator.synthetic.synthetic_data_generator import SyntheticDataGenerator
-from natix.validator.config import T2I_MODEL_NAMES
+from natix.validator.synthetic.config import T2I_MODEL_NAMES
 
 
 @pytest.fixture

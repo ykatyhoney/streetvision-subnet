@@ -18,14 +18,14 @@ from PIL import Image
 from natix.validator.synthetic.prompt_generator import PromptGenerator
 from natix.validator.synthetic.prompt_utils import truncate_prompt_if_too_long
 from natix.validator.cache import ImageCache
-from natix.validator.config import (
-    HUGGINGFACE_CACHE_DIR,
+from natix.constants import TARGET_IMAGE_SIZE
+from natix.validator.config import HUGGINGFACE_CACHE_DIR
+from natix.validator.synthetic.config import (
     I2I_MODEL_NAMES,
     IMAGE_ANNOTATION_MODEL,
     MODEL_NAMES,
     MODELS,
     T2I_MODEL_NAMES,
-    TARGET_IMAGE_SIZE,
     TEXT_MODERATION_MODEL,
     get_modality,
     get_task,
