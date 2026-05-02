@@ -238,7 +238,7 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 
 ---
 
-## Step 11 — Create `natix/validator/challenge/augmentation.py`
+## Step 11 — Create `natix/validator/challenge/augmentation.py` ✅
 
 **Goal:** Complete the challenge/ split from Step 7. The augmentation wrapper was never created — `forward.py` still calls `apply_augmentation_by_level` directly from `natix.utils.image_transforms`.
 

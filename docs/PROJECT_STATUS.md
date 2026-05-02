@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-05-02. Migration complete.
+Last updated: 2026-05-03. Steps 11 done; 12–14 pending.
 
 ---
 
@@ -18,12 +18,16 @@ Last updated: 2026-05-02. Migration complete.
 | 8 | Consolidate statistics reporting into `api_client.py` | ✅ Done |
 | 9 | Thin entry points in `neurons/` | ✅ Done |
 | 10 | Validation, cleanup, Dockerfile verification | ✅ Done |
+| 11 | Create `natix/validator/challenge/augmentation.py` | ✅ Done |
+| 12 | Move inference code out of `neurons/miner.py` | 🔄 In progress |
+| 13 | Create `natix/validator/scoring/` | ⬜ Pending |
+| 14 | Consolidate root-level operational files into `scripts/` | ⬜ Pending |
 
 ---
 
 ## Current branch
 
-`development` — ready to merge to `main`.
+`re-architecture` — Steps 11–14 in progress.
 
 ---
 
@@ -67,10 +71,10 @@ natix/
   protocol.py               # shared synapse, torch-free at import time
   base/                     # chain/axon primitives, no ML deps
   utils/                    # shared utilities, no validator/miner deps
-  miner/                    # all miner ML code (detectors, datasets, registry)
+  miner/                    # all miner ML code (detectors, datasets, registry, Miner class)
   validator/
     api_client.py           # all proxy API calls + statistics reporting
-    challenge/              # challenge selection, S3 fetch, augmentation wrapper
+    challenge/              # challenge selection, S3 fetch, augmentation (augment_challenge)
     cache/                  # HuggingFace parquet download + image cache
     proxy/                  # organic task polling + distribution
     scoring/ (reward.py)    # reward computation + performance tracker
