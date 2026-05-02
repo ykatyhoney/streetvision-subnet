@@ -2,7 +2,7 @@
 
 Ten steps to migrate from the current mixed structure to the clean architecture described in ARCHITECTURE.md. Each step is self-contained and should be done in order — later steps depend on earlier ones.
 
-**Current status:** Step 1 complete. Steps 2–10 not started.
+**Current status:** Steps 1–10 complete. Steps 11–13 pending.
 
 ---
 
@@ -238,6 +238,79 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 
 ---
 
+## Step 11 — Create `natix/validator/challenge/augmentation.py`
+
+**Goal:** Complete the challenge/ split from Step 7. The augmentation wrapper was never created — `forward.py` still calls `apply_augmentation_by_level` directly from `natix.utils.image_transforms`.
+
+**Why it matters:** Per SPECIFICATIONS.md, `challenge/` owns everything related to constructing a single challenge, including augmentation. Keeping the augmentation call in `forward.py` leaves a leaky abstraction that mixes orchestration with challenge-building logic.
+
+**Changes:**
+- Create `natix/validator/challenge/augmentation.py` with a single function:
+  - `augment_challenge(image, size, mask_center)` → `(image, level, params)`  
+  - Thin wrapper over `natix.utils.image_transforms.apply_augmentation_by_level`
+- Update `natix/validator/forward.py` to import and call `augment_challenge` instead of calling `apply_augmentation_by_level` directly
+- Update `natix/validator/challenge/__init__.py` to export `augment_challenge`
+
+**Files affected:**
+- `natix/validator/challenge/augmentation.py` (new)
+- `natix/validator/challenge/__init__.py`
+- `natix/validator/forward.py`
+
+**Depends on:** Step 7
+
+---
+
+## Step 12 — Move inference code out of `neurons/miner.py`
+
+**Goal:** `neurons/miner.py` becomes a true entry point. Currently it contains `forward_image()` (inference) and `load_image_detector()` (model loading) — both are business logic that violates the SPECIFICATIONS.md rule: "Must NOT contain: Business logic, model definitions, inference code."
+
+**Changes:**
+- Create `natix/miner/neuron.py` containing a `Miner` class (subclass of `BaseMinerNeuron`) with:
+  - `load_image_detector()` — model loading
+  - `forward_image()` — inference handler
+  - `blacklist_image()` / `priority_image()` — axon hooks
+  - `save_state()`
+- Slim `neurons/miner.py` to ~30 lines: import `Miner` from `natix.miner.neuron`, parse args, run loop
+- Update `tests/test_miner.py` import accordingly
+
+**Files affected:**
+- `natix/miner/neuron.py` (new)
+- `neurons/miner.py` (trimmed to entry point)
+- `tests/test_miner.py`
+
+**Depends on:** Step 4
+
+---
+
+## Step 13 — Create `natix/validator/scoring/` and relocate reward + performance tracker
+
+**Goal:** Align with the target architecture in ARCHITECTURE.md. `reward.py` and `MinerPerformanceTracker` belong together under `natix/validator/scoring/` — they are both validator scoring concerns, not base-layer concerns.
+
+**Current locations (wrong):**
+- `natix/validator/reward.py` — should be `natix/validator/scoring/reward.py`
+- `natix/base/miner_performance_tracker.py` — should be `natix/validator/scoring/performance_tracker.py`
+
+**Changes:**
+- Create `natix/validator/scoring/` directory
+- Move `natix/validator/reward.py` → `natix/validator/scoring/reward.py` (git mv)
+- Move `natix/base/miner_performance_tracker.py` → `natix/validator/scoring/performance_tracker.py` (git mv)
+- Create `natix/validator/scoring/__init__.py` exporting `get_rewards` and `MinerPerformanceTracker`
+- Update `natix/base/validator.py` import: `from natix.base.miner_performance_tracker` → `from natix.validator.scoring.performance_tracker` (this is explicitly allowed by SPECIFICATIONS.md)
+- Update `natix/validator/forward.py` import: `from natix.validator.reward` → `from natix.validator.scoring`
+- Update any other call sites
+
+**Files affected:**
+- `natix/validator/reward.py` → `natix/validator/scoring/reward.py`
+- `natix/base/miner_performance_tracker.py` → `natix/validator/scoring/performance_tracker.py`
+- `natix/validator/scoring/__init__.py` (new)
+- `natix/base/validator.py`
+- `natix/validator/forward.py`
+- Any tests importing from the old paths
+
+**Depends on:** Step 8
+
+---
+
 ## Step ordering summary
 
 ```
@@ -245,12 +318,15 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 ├── 2 (deps)        — independent of 3-9, can do in parallel
 ├── 3 (protocol)    — independent of 4-9, can do in parallel
 ├── 4 (base_miner)  — independent of 5-9
+│   └── 12 (thin miner neuron)
 ├── 5 (synthetic)   — independent of 4, 6-9
 ├── 6 (proxy)
 │   └── 7 (forward split)
+│       ├── 11 (augmentation.py)
 │       └── 8 (stats consolidation)
 │           └── 9 (thin neurons)
 │               └── 10 (validation)
+└── 13 (scoring/)   — depends on 8
 ```
 
-Steps 2, 3, 4, 5 can be done in any order after Step 1. Step 6 must come before 7, 7 before 8, 8 before 9.
+Steps 2, 3, 4, 5 can be done in any order after Step 1. Steps 11, 12, 13 are independent of each other and can be done in any order.
