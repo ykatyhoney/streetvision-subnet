@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-05-03. Steps 11 done; 12–14 pending.
+Last updated: 2026-05-03. Steps 11–12 done; 13–14 pending.
 
 ---
 
@@ -19,7 +19,7 @@ Last updated: 2026-05-03. Steps 11 done; 12–14 pending.
 | 9 | Thin entry points in `neurons/` | ✅ Done |
 | 10 | Validation, cleanup, Dockerfile verification | ✅ Done |
 | 11 | Create `natix/validator/challenge/augmentation.py` | ✅ Done |
-| 12 | Move inference code out of `neurons/miner.py` | 🔄 In progress |
+| 12 | Move inference code out of `neurons/miner.py` | ✅ Done |
 | 13 | Create `natix/validator/scoring/` | ⬜ Pending |
 | 14 | Consolidate root-level operational files into `scripts/` | ⬜ Pending |
 
@@ -82,6 +82,6 @@ natix/
     monitoring.py           # wandb lifecycle
     forward.py              # orchestrator loop
 neurons/
-  miner.py                  # entry point: ~124 lines
+  miner.py                  # entry point: ~25 lines (Miner class lives in natix/miner/neuron.py)
   validator.py              # entry point: ~64 lines
 ```

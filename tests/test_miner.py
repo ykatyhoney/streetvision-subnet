@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image
 
 from natix.protocol import ImageSynapse
-from neurons.miner import Miner
+from natix.miner.neuron import Miner
 
 
 SAMPLE_IMAGE = os.path.join(os.path.dirname(__file__), "fixtures", "sample_image.jpg")

@@ -260,7 +260,7 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 
 ---
 
-## Step 12 — Move inference code out of `neurons/miner.py`
+## Step 12 — Move inference code out of `neurons/miner.py` ✅
 
 **Goal:** `neurons/miner.py` becomes a true entry point. Currently it contains `forward_image()` (inference) and `load_image_detector()` (model loading) — both are business logic that violates the SPECIFICATIONS.md rule: "Must NOT contain: Business logic, model definitions, inference code."
 
