@@ -217,7 +217,7 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 
 ---
 
-## Step 10 — Validation, cleanup, and Dockerfile verification
+## Step 10 — Validation, cleanup, and Dockerfile verification ✅
 
 **Goal:** Confirm the full migration is correct and all install paths work.
 

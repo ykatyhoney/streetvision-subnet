@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from natix.utils.mock import MockValidator
+from tests.fixtures.mock_validator import MockValidator
 from natix.validator.forward import forward
 from tests.fixtures import NETUID
 
