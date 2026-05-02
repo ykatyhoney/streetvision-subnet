@@ -5,7 +5,7 @@ import numpy as np
 import PIL
 from PIL import Image, ImageDraw
 
-from natix.validator.config import TARGET_IMAGE_SIZE
+from natix.constants import TARGET_IMAGE_SIZE
 
 
 def resize_image(image: PIL.Image.Image, max_width: int, max_height: int) -> PIL.Image.Image:

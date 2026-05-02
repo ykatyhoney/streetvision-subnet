@@ -7,7 +7,7 @@ from diffusers import (
     StableDiffusionXLImg2ImgPipeline,
 )
 
-TARGET_IMAGE_SIZE: tuple[int, int] = (224, 224)
+from natix.constants import TARGET_IMAGE_SIZE  # re-exported; define in natix/constants.py
 
 MAINNET_UID = 72
 TESTNET_UID = 323

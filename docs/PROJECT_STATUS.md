@@ -10,7 +10,7 @@ Snapshot of the project state as of 2026-05-02. Update this file after completin
 |------|-------------|--------|
 | 1 | Create migration documentation | ✅ Done |
 | 2 | Drop Poetry, pip + venv, dependency isolation | ✅ Done |
-| 3 | Fix `protocol.py` dependency inversion | ⬜ Not started |
+| 3 | Fix `protocol.py` dependency inversion | ✅ Done |
 | 4 | Move `base_miner/` → `natix/miner/` | ⬜ Not started |
 | 5 | Move `natix/synthetic_data_generation/` → `natix/validator/synthetic/` | ⬜ Not started |
 | 6 | Move `neurons/validator_proxy.py` → `natix/validator/proxy/` | ⬜ Not started |

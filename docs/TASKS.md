@@ -73,7 +73,7 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 
 ---
 
-## Step 3 — Fix `protocol.py` dependency inversion
+## Step 3 — Fix `protocol.py` dependency inversion ✅
 
 **Goal:** `natix/protocol.py` must be importable with zero ML dependencies. Currently it imports `torch`, `torchvision`, and `natix/validator/config.TARGET_IMAGE_SIZE` at module level.
 

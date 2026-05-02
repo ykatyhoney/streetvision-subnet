@@ -32,7 +32,8 @@ from PIL import Image
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import apply_augmentation_by_level
 from natix.validator.api_client import build_auth_headers
-from natix.validator.config import CHALLENGE_TYPE, TARGET_IMAGE_SIZE
+from natix.constants import TARGET_IMAGE_SIZE
+from natix.validator.config import CHALLENGE_TYPE
 from natix.validator.reward import get_rewards
 from natix.utils.wandb_utils import log_to_wandb
 
