@@ -4,10 +4,9 @@ import time
 import bittensor as bt
 from natix.constants import TARGET_IMAGE_SIZE
 from natix.protocol import prepare_synapse
-from natix.utils.image_transforms import apply_augmentation_by_level
 from natix.utils.wandb_utils import log_to_wandb
 from natix.validator.api_client import statistics_assign_task, statistics_report_task_batch
-from natix.validator.challenge import determine_challenge_type, fetch_api_challenge
+from natix.validator.challenge import augment_challenge, determine_challenge_type, fetch_api_challenge
 from natix.validator.reward import get_rewards
 from natix.validator.utils import fix_ip_format
 
@@ -39,7 +38,7 @@ async def forward(self):
     input_data = challenge[modality]
 
     try:
-        input_data, level, data_aug_params = apply_augmentation_by_level(input_data, TARGET_IMAGE_SIZE, challenge.get("mask_center"))
+        input_data, level, data_aug_params = augment_challenge(input_data, TARGET_IMAGE_SIZE, challenge.get("mask_center"))
     except Exception as e:
         level, data_aug_params = -1, {}
         bt.logging.error(f"Unable to apply augmentations: {e}")

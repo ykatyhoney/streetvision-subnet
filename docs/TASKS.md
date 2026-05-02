@@ -311,6 +311,41 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 
 ---
 
+## Step 14 — Consolidate root-level operational files into `scripts/`
+
+**Goal:** Reduce root clutter by moving operational shell scripts and PM2 configs into a `scripts/` directory. The root currently has 11 operational files that are not Python packaging conventions.
+
+**Files to move:**
+- `start_miner.sh` → `scripts/start_miner.sh`
+- `start_validator.sh` → `scripts/start_validator.sh`
+- `start_cache_updater.sh` → `scripts/start_cache_updater.sh`
+- `start_synthetic_generator.sh` → `scripts/start_synthetic_generator.sh`
+- `setup_env.sh` → `scripts/setup_env.sh`
+- `register.sh` → `scripts/register.sh`
+- `autoupdate_miner_steps.sh` → `scripts/autoupdate_miner_steps.sh`
+- `autoupdate_validator_steps.sh` → `scripts/autoupdate_validator_steps.sh`
+- `run_neuron.py` → `scripts/run_neuron.py`
+- `ecosystem.miner.config.js` → `scripts/ecosystem.miner.config.js`
+- `ecosystem.validator.config.js` → `scripts/ecosystem.validator.config.js`
+
+**Files that stay at root** (conventions or operator convenience):
+- `pyproject.toml`, `README.md`, `LICENSE`, `.gitignore`, `.pre-commit-config.yaml` — Python/Git standards
+- `min_compute.yml` — Bittensor subnet convention (queried at root)
+- `Dockerfile.miner`, `Dockerfile.validator` — Docker Hub auto-build convention
+- `requirements.*.txt` — referenced directly by Dockerfiles
+- `miner.env`, `validator.env` — operators need to find and edit these easily
+
+**Changes:**
+- `git mv` each file into `scripts/`
+- Update any cross-references between scripts (e.g., `start_validator.sh` calling `start_cache_updater.sh`)
+- Update `WORKFLOW.md` to reference `scripts/start_validator.sh` etc.
+- Update `README.md` if it references any of these paths
+- Update PM2 ecosystem configs if they reference script paths
+
+**Depends on:** Step 1 (independent of all other steps)
+
+---
+
 ## Step ordering summary
 
 ```
@@ -326,7 +361,8 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 │       └── 8 (stats consolidation)
 │           └── 9 (thin neurons)
 │               └── 10 (validation)
-└── 13 (scoring/)   — depends on 8
+├── 13 (scoring/)   — depends on 8
+└── 14 (scripts/)   — independent, depends only on Step 1
 ```
 
-Steps 2, 3, 4, 5 can be done in any order after Step 1. Steps 11, 12, 13 are independent of each other and can be done in any order.
+Steps 2, 3, 4, 5 can be done in any order after Step 1. Steps 11, 12, 13, 14 are independent of each other and can be done in any order.
