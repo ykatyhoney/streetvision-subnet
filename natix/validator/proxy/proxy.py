@@ -13,7 +13,7 @@ from natix.validator.api_client import build_auth_headers
 from natix.constants import TARGET_IMAGE_SIZE
 from natix.validator.api_client import statistics_assign_task, statistics_report_task_batch
 from natix.validator.utils import fix_ip_format
-from natix.validator.reward import get_rewards
+from natix.validator.scoring import get_rewards
 
 
 class ValidatorProxy:

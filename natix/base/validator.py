@@ -34,7 +34,7 @@ from natix.base.neuron import BaseNeuron
 from natix.base.utils.weight_utils import convert_weights_and_uids_for_emit, process_weights_for_netuid
 from natix.utils.config import add_validator_args
 from natix.utils.mock import MockDendrite
-from natix.base.miner_performance_tracker import MinerPerformanceTracker
+from natix.validator.scoring.performance_tracker import MinerPerformanceTracker
 
 class BaseValidatorNeuron(BaseNeuron):
     """

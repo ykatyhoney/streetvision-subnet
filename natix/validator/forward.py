@@ -7,7 +7,7 @@ from natix.protocol import prepare_synapse
 from natix.utils.wandb_utils import log_to_wandb
 from natix.validator.api_client import statistics_assign_task, statistics_report_task_batch
 from natix.validator.challenge import augment_challenge, determine_challenge_type, fetch_api_challenge
-from natix.validator.reward import get_rewards
+from natix.validator.scoring import get_rewards
 from natix.validator.utils import fix_ip_format
 
 

@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 
 from natix.utils.mock import MockDendrite, MockMetagraph, MockSubtensor, create_random_image
-from natix.base.miner_performance_tracker import MinerPerformanceTracker
+from natix.validator.scoring.performance_tracker import MinerPerformanceTracker
 
 
 class MockImageDataset:

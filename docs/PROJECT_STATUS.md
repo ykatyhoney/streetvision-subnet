@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-05-03. Steps 11–12 done; 13–14 pending.
+Last updated: 2026-05-03. Steps 11–13 done; 14 pending.
 
 ---
 
@@ -20,7 +20,7 @@ Last updated: 2026-05-03. Steps 11–12 done; 13–14 pending.
 | 10 | Validation, cleanup, Dockerfile verification | ✅ Done |
 | 11 | Create `natix/validator/challenge/augmentation.py` | ✅ Done |
 | 12 | Move inference code out of `neurons/miner.py` | ✅ Done |
-| 13 | Create `natix/validator/scoring/` | ⬜ Pending |
+| 13 | Create `natix/validator/scoring/` | ✅ Done |
 | 14 | Consolidate root-level operational files into `scripts/` | ⬜ Pending |
 
 ---
@@ -77,7 +77,7 @@ natix/
     challenge/              # challenge selection, S3 fetch, augmentation (augment_challenge)
     cache/                  # HuggingFace parquet download + image cache
     proxy/                  # organic task polling + distribution
-    scoring/ (reward.py)    # reward computation + performance tracker
+    scoring/                # reward computation (reward.py) + performance tracker (performance_tracker.py)
     synthetic/              # diffusion-based image generation (optional)
     monitoring.py           # wandb lifecycle
     forward.py              # orchestrator loop

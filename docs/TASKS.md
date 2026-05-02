@@ -282,7 +282,7 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 
 ---
 
-## Step 13 — Create `natix/validator/scoring/` and relocate reward + performance tracker
+## Step 13 — Create `natix/validator/scoring/` and relocate reward + performance tracker ✅
 
 **Goal:** Align with the target architecture in ARCHITECTURE.md. `reward.py` and `MinerPerformanceTracker` belong together under `natix/validator/scoring/` — they are both validator scoring concerns, not base-layer concerns.
 
