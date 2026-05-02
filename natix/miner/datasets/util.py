@@ -4,8 +4,8 @@ import datasets
 import numpy as np
 import torchvision.transforms as transforms
 
-from base_miner.datasets import ImageDataset, RealFakeDataset, VideoDataset
-from base_miner.datasets.download_data import load_huggingface_dataset
+from natix.miner.datasets import ImageDataset, RealFakeDataset, VideoDataset
+from natix.miner.datasets.download_data import load_huggingface_dataset
 
 datasets.logging.set_verbosity_error()
 datasets.disable_progress_bar()

@@ -93,7 +93,7 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 
 ---
 
-## Step 4 — Move `base_miner/` → `natix/miner/`
+## Step 4 — Move `base_miner/` → `natix/miner/` ✅
 
 **Goal:** All miner-specific code lives under `natix/`, mirroring `natix/validator/`. The `base_miner/` directory at project root is eliminated.
 

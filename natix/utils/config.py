@@ -158,7 +158,7 @@ def add_miner_args(cls, parser):
     parser.add_argument(
         "--neuron.image_detector_config",
         type=str,
-        help=".yaml file name in base_miner/deepfake_detectors/configs/ to load for trained model.",
+        help=".yaml file name in natix/miner/deepfake_detectors/configs/ to load for trained model.",
         default="roadwork.yaml",
     )
 
@@ -179,7 +179,7 @@ def add_miner_args(cls, parser):
     parser.add_argument(
         "--neuron.video_detector_config",
         type=str,
-        help=".yaml file name in base_miner/deepfake_detectors/configs/ to load for trained model.",
+        help=".yaml file name in natix/miner/deepfake_detectors/configs/ to load for trained model.",
         default="tall.yaml",
     )
 

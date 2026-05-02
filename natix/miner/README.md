@@ -1,6 +1,6 @@
 ## Base Miners
 
-The `base_miner/` directory facilitates the training, orchestration, and deployment of modular and highly customizable deepfake detectors.
+The `natix/miner/` directory facilitates the training, orchestration, and deployment of modular and highly customizable deepfake detectors.
 We broadly define **detector** as an algorithm that either employs a single model or orchestrates multiple models to perform the binary real-or-AI inference task. These **models** can be any algorithm that processes an image to determine its classification. This includes not only pretrained machine learning architectures, but also heuristic and statistical modeling frameworks.
 
 - **Latest Iteration**: The most performant iteration of `class CAMODetector(DeepfakeDetector)` used in our base miner `neurons/miner.py` incorporates a `GatingMechanism(Gate)` that routes to a fine-tuned face expert model and generalist model with the `UCF` architecture.

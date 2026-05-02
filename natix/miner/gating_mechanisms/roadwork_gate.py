@@ -1,8 +1,8 @@
 import numpy as np
 from PIL import Image
 
-from base_miner.gating_mechanisms import Gate
-from base_miner.registry import GATE_REGISTRY
+from natix.miner.gating_mechanisms import Gate
+from natix.miner.registry import GATE_REGISTRY
 
 
 @GATE_REGISTRY.register_module(module_name="ROADWORK")

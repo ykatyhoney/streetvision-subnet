@@ -1,6 +1,6 @@
 from PIL import Image
 
-from base_miner.registry import GATE_REGISTRY
+from natix.miner.registry import GATE_REGISTRY
 
 
 class GatingMechanism:

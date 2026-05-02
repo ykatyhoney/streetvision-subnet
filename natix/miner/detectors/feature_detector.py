@@ -8,7 +8,7 @@ import yaml
 from huggingface_hub import hf_hub_download
 from PIL import Image
 
-from base_miner.detectors.configs.constants import CONFIGS_DIR
+from natix.miner.detectors.configs.constants import CONFIGS_DIR
 
 
 class FeatureDetector(ABC):

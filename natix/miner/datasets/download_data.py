@@ -12,7 +12,7 @@ import requests
 from datasets import load_dataset, load_from_disk
 from PIL import Image
 
-from base_miner.config import HUGGINGFACE_CACHE_DIR, IMAGE_DATASETS
+from natix.miner.config import HUGGINGFACE_CACHE_DIR, IMAGE_DATASETS
 
 datasets.logging.set_verbosity_warning()
 datasets.disable_progress_bar()

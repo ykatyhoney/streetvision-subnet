@@ -4,7 +4,7 @@ from typing import Optional
 from datasets import Dataset
 from torchvision.transforms import Compose
 
-from base_miner.datasets.download_data import load_huggingface_dataset
+from natix.miner.datasets.download_data import load_huggingface_dataset
 
 
 class BaseDataset(ABC):

@@ -9,8 +9,8 @@ import torchvision.transforms as transforms
 from PIL import Image
 from transformers import AutoImageProcessor, AutoModelForImageClassification, pipeline
 
-from base_miner.detectors import FeatureDetector
-from base_miner.registry import DETECTOR_REGISTRY
+from natix.miner.detectors import FeatureDetector
+from natix.miner.registry import DETECTOR_REGISTRY
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # Ignore INFO and WARN messages
 warnings.filterwarnings("ignore", category=FutureWarning)

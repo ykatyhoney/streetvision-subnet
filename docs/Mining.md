@@ -41,10 +41,10 @@ This will install all necessary dependencies and prepare your environment.
 Optionally, pre-download the training datasets by running:
 
 ```bash
-poetry run python base_miner/datasets/download_data.py
+poetry run python natix/miner/datasets/download_data.py
 ```
 
-The default list of datasets and their download location is defined in `base_miner/config.py`.
+The default list of datasets and their download location is defined in `natix/miner/config.py`.
 
 ## Mining Requirements ⚠️
 
@@ -128,11 +128,11 @@ This invokes `natix/validator/scripts/run_cache_updater.py` in the background.
 
 Update your `miner.env` file to use your trained detector class and configuration.
 
-* Detector types are defined in `base_miner/registry.py`.
-* Config files live in `base_miner/detectors/configs/`.
+* Detector types are defined in `natix/miner/registry.py`.
+* Config files live in `natix/miner/detectors/configs/`.
 * UCFDetector requires a `train_config` path in its config YAML.
 
-Weights should be placed under `base_miner/<detector_type>/weights`. If missing, they will be pulled from Hugging Face according to the `hf_repo` field in the config.
+Weights should be placed under `natix/miner/<detector_type>/weights`. If missing, they will be pulled from Hugging Face according to the `hf_repo` field in the config.
 
 ## Training
 
@@ -143,7 +143,7 @@ To improve beyond the baseline model, experiment with new datasets, architecture
 Start TensorBoard to view training metrics:
 
 ```bash
-tensorboard --logdir=./base_miner/checkpoints/<experiment_name>
+tensorboard --logdir=./natix/miner/checkpoints/<experiment_name>
 ```
 
 For remote machines:
@@ -155,7 +155,7 @@ ssh -L 7007:localhost:6006 your_username@your_ip
 Then on the remote machine:
 
 ```bash
-tensorboard --logdir=./base_miner/checkpoints/<experiment_name> --host 0.0.0.0 --port 6006
+tensorboard --logdir=./natix/miner/checkpoints/<experiment_name> --host 0.0.0.0 --port 6006
 ```
 
 View it locally at `http://localhost:7007`
