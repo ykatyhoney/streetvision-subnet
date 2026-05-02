@@ -15,8 +15,8 @@ from diffusers.utils import export_to_video
 from PIL import Image
 
 
-from natix.synthetic_data_generation.prompt_generator import PromptGenerator
-from natix.synthetic_data_generation.prompt_utils import truncate_prompt_if_too_long
+from natix.validator.synthetic.prompt_generator import PromptGenerator
+from natix.validator.synthetic.prompt_utils import truncate_prompt_if_too_long
 from natix.validator.cache import ImageCache
 from natix.validator.config import (
     HUGGINGFACE_CACHE_DIR,

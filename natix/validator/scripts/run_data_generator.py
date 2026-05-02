@@ -6,7 +6,7 @@ import torch
 
 import bittensor as bt
 
-from natix.synthetic_data_generation import SyntheticDataGenerator
+from natix.validator.synthetic import SyntheticDataGenerator
 from natix.validator.cache import ImageCache
 from natix.validator.config import MODEL_NAMES, ROADWORK_IMAGE_CACHE_DIR, SYNTH_CACHE_DIR, get_task
 

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from PIL import Image
 
-from natix.synthetic_data_generation.synthetic_data_generator import SyntheticDataGenerator
+from natix.validator.synthetic.synthetic_data_generator import SyntheticDataGenerator
 from natix.validator.config import T2I_MODEL_NAMES
 
 
@@ -15,8 +15,8 @@ def mock_diffuser():
     Returns:
         MagicMock: A mock object representing the diffuser pipeline.
     """
-    with patch("natix.synthetic_data_generation.synthetic_data_generator.StableDiffusionXLPipeline") as mock_sdxl:
-        with patch("natix.synthetic_data_generation.synthetic_data_generator.FluxPipeline") as mock_flux:
+    with patch("natix.validator.synthetic.synthetic_data_generator.StableDiffusionXLPipeline") as mock_sdxl:
+        with patch("natix.validator.synthetic.synthetic_data_generator.FluxPipeline") as mock_flux:
             mock_pipeline = MagicMock()
             test_image = Image.new("RGB", (256, 256))
             mock_pipeline.return_value = {"images": [test_image]}

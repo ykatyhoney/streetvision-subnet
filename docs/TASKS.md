@@ -114,7 +114,7 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 
 ---
 
-## Step 5 — Move `natix/synthetic_data_generation/` → `natix/validator/synthetic/`
+## Step 5 — Move `natix/synthetic_data_generation/` → `natix/validator/synthetic/` ✅
 
 **Goal:** Validator-only code lives under `natix/validator/`. The top-level `natix/synthetic_data_generation/` is eliminated.
 
