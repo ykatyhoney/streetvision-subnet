@@ -8,7 +8,8 @@ from httpx import HTTPStatusError, Client, Timeout, ReadTimeout
 
 import bittensor as bt
 
-from natix.validator.forward import statistics_assign_task, fix_ip_format
+from natix.validator.forward import statistics_assign_task
+from natix.validator.utils import fix_ip_format
 
 
 class OrganicTaskDistributor:

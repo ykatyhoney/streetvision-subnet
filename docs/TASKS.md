@@ -155,7 +155,7 @@ python -c "from natix.protocol import ImageSynapse; print('OK')"
 
 ---
 
-## Step 7 — Split `natix/validator/forward.py`
+## Step 7 — Split `natix/validator/forward.py` ✅
 
 **Goal:** `forward.py` becomes a thin orchestrator. Its four embedded concerns become separate modules.
 
