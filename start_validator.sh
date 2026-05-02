@@ -12,9 +12,6 @@ VALIDATOR_PROCESS_NAME="natix_validator"
 DATA_GEN_PROCESS_NAME="natix_data_generator"
 CACHE_UPDATE_PROCESS_NAME="natix_cache_updater"
 
-# bittensor 9.x ships scalecodec but async_substrate_interface rejects it at runtime.
-# Strip it after every install so the correct cyscale remains.
-poetry run pip uninstall scalecodec -y 2>/dev/null || true
 
 # Login to Weights & Biases
 if ! wandb login $WANDB_API_KEY; then
@@ -23,13 +20,13 @@ if ! wandb login $WANDB_API_KEY; then
 fi
 
 # Login to Hugging Face
-if ! poetry run hf auth login --token $HUGGING_FACE_TOKEN; then
+if ! hf auth login --token $HUGGING_FACE_TOKEN; then
   echo "Failed to login to Hugging Face with the provided token."
   exit 1
 fi
 
 echo "Starting validator process"
-poetry run python neurons/validator.py \
+./venv/bin/python neurons/validator.py \
   --netuid $NETUID \
   --subtensor.network $SUBTENSOR_NETWORK \
   --subtensor.chain_endpoint $SUBTENSOR_CHAIN_ENDPOINT \
