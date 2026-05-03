@@ -74,7 +74,7 @@ Records of significant architectural decisions — what was chosen, why, and wha
 
 ## TD-007: Statistics reporting belongs in `api_client.py`
 
-**Decision:** All calls to the statistics API (`/organic_tasks/statistics/assign`, `/organic_tasks/statistics/report`) are routed through `natix/validator/api_client.py`. No other file re-implements these functions.
+**Decision:** All calls to the statistics API (`/tasks/statistics/assign`, `/tasks/statistics/report`) are routed through `natix/validator/api_client.py`. No other file re-implements these functions.
 
 **Rationale:** The same functions are currently copy-pasted in three places with subtle signature differences (batch vs. single prediction). A change to the API contract (e.g., adding a field) requires updating all three copies. Centralizing in `api_client.py` makes the API surface explicit and reduces the risk of divergence.
 

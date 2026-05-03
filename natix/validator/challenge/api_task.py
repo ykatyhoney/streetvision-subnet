@@ -10,11 +10,13 @@ from natix.validator.api_client import build_auth_headers
 async def fetch_api_challenge(validator, label: int) -> dict | None:
     """Fetch a benchmark challenge image from the proxy API and download it from S3."""
     try:
+        headers = build_auth_headers(validator.wallet)
+        body = {"scoring_method": 0, "category": 0, "label": int(label)}
         async with AsyncClient(timeout=Timeout(30)) as client:
             response = await client.post(
                 f"{validator.config.proxy.proxy_client_url}/tasks/request",
-                headers=build_auth_headers(validator.wallet),
-                json={"scoring_method": 0, "category": 0, "label": label},
+                headers=headers,
+                json=body,
             )
         if response.status_code == 404:
             bt.logging.warning("[API] No benchmark tasks available")

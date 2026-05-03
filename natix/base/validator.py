@@ -35,6 +35,11 @@ from natix.base.utils.weight_utils import convert_weights_and_uids_for_emit, pro
 from natix.utils.config import add_validator_args
 from natix.utils.mock import MockDendrite
 from natix.validator.scoring.performance_tracker import MinerPerformanceTracker
+from natix.validator.config import MAX_TASKS_PER_DAY, ORGANIC_TASK_RATIO
+
+_SECONDS_PER_DAY = 86_400
+# Note: API applied rate limits. If num_concurrent_forwards > 1, divide further.
+SLEEP_TIME = max(10, int(_SECONDS_PER_DAY / (MAX_TASKS_PER_DAY * (1 - ORGANIC_TASK_RATIO))))
 
 class BaseValidatorNeuron(BaseNeuron):
     """
@@ -228,7 +233,7 @@ class BaseValidatorNeuron(BaseNeuron):
                 bt.logging.error(f"Error during sync: {e}")
                 # Continue running even if sync fails
             
-            time.sleep(60)
+            time.sleep(SLEEP_TIME)
             self.step += 1
 
     def run_in_background_thread(self):

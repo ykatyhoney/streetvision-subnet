@@ -8,18 +8,22 @@ import httpx
 from PIL import Image
 
 from natix.protocol import prepare_synapse
-from natix.utils.image_transforms import apply_augmentation_by_level
 from natix.validator.api_client import build_auth_headers
-from natix.constants import TARGET_IMAGE_SIZE
 from natix.validator.api_client import statistics_assign_task, statistics_report_task_batch
 from natix.validator.utils import fix_ip_format
+from natix.validator.config import MAX_TASKS_PER_DAY, ORGANIC_TASK_RATIO
+
 from natix.validator.scoring import get_rewards
+
+_SECONDS_PER_DAY = 86_400
+# One poll sends one scoring_method:1 task.
+_ORGANIC_POLL_INTERVAL = max(30, int(_SECONDS_PER_DAY / (MAX_TASKS_PER_DAY * ORGANIC_TASK_RATIO)))
 
 
 class ValidatorProxy:
     def __init__(self, validator):
         self.validator = validator
-        self.poll_interval = validator.config.organic.poll_interval_seconds
+        self.poll_interval = _ORGANIC_POLL_INTERVAL
         threading.Thread(target=self._run_poll_loop, daemon=True).start()
 
     def _run_poll_loop(self):
@@ -38,15 +42,18 @@ class ValidatorProxy:
 
     async def _poll_and_distribute(self, dendrite):
         api_url = self.validator.config.proxy.proxy_client_url
+        print("api_url", api_url)
         wallet = self.validator.wallet
 
         # Request a consensus task from the API
         try:
+            headers = build_auth_headers(wallet)
+            body = {"scoring_method": 1, "category": 0}
             async with httpx.AsyncClient(timeout=httpx.Timeout(30)) as client:
                 response = await client.post(
                     f"{api_url}/tasks/request",
-                    headers=build_auth_headers(wallet),
-                    json={"scoring_method": 1, "category": 0},
+                    headers=headers,
+                    json=body,
                 )
             if response.status_code == 404:
                 bt.logging.info("[ORGANIC] No consensus tasks available")
@@ -76,15 +83,10 @@ class ValidatorProxy:
                 img_response = await client.get(s3_url)
                 img_response.raise_for_status()
             image = Image.open(BytesIO(img_response.content)).convert("RGB")
+            print("image len: ", len(image))
         except Exception as e:
             bt.logging.error(f"[ORGANIC] Failed to download task image: {e}")
             return
-
-        # Apply augmentation
-        try:
-            image, _, _ = apply_augmentation_by_level(image, TARGET_IMAGE_SIZE, None)
-        except Exception as e:
-            bt.logging.warning(f"[ORGANIC] Augmentation failed: {e}")
 
         # Sample miner UIDs
         miner_uids = self.validator.organic_uid_deck.next_k(
@@ -104,9 +106,11 @@ class ValidatorProxy:
         statistics_response = statistics_assign_task(
             self.validator,
             miner_uid_list=miner_uids,
-            type=1,  # Consensus — will become scoring_method in Step 2
+            scoring_method=1,
+            category=category,
             label=0,
-            payload_ref=synapse.image,
+            image=synapse.image,
+            task_id=task_id,
         )
 
         # Query miners

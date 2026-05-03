@@ -131,9 +131,10 @@ class OrganicTaskDistributor:
             statistics_response = statistics_assign_task(
                 self.validator,
                 miner_uid_list=selected_miners,
-                type=1, # Organic task
-                label=-1, # No value yet
-                payload_ref=synapse.image
+                scoring_method=1,
+                category=0,
+                label=-1,
+                image=synapse.image
             )
         except Exception as e:
             bt.logging.error(

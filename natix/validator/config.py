@@ -35,6 +35,9 @@ CHALLENGE_TYPE = {0: "None", 1: "Roadwork"}
 
 REWARD_CURVE_EXPONENT = 3.0  # >1.0 steepens the reward curve
 
+MAX_TASKS_PER_DAY = 1440
+ORGANIC_TASK_RATIO = 0.10
+
 IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
     "Roadwork": [
         {"path": f"{HUGGINGFACE_REPO}/roadwork"},

@@ -1,4 +1,5 @@
 import time
+import hashlib
 from typing import List
 
 import bittensor as bt
@@ -18,21 +19,29 @@ def build_auth_headers(wallet) -> dict:
 def statistics_assign_task(
     validator,
     miner_uid_list: List[int],
-    type: int,
+    scoring_method: int,
+    category: int,
     label: int,
-    payload_ref: str,
+    image: str,
+    task_id: str | None = None,
 ) -> dict | None:
     try:
+        clean_image = str(image).strip()
+        encoded_image = clean_image.encode()
+        payload_ref = hashlib.sha256(encoded_image).hexdigest()
         payload = {
             "validator_uid": int(validator.uid),
             "miner_uid_list": [int(uid) for uid in miner_uid_list],
-            "type": type,
+            "scoring_method": scoring_method,
+            "category": category,
             "label": int(label),
             "payload_ref": str(payload_ref),
         }
+        if task_id is not None:
+            payload["task_id"] = str(task_id)
         with Client(timeout=Timeout(30)) as client:
             response = client.post(
-                f"{validator.config.proxy.proxy_client_url}/organic_tasks/statistics/assign",
+                f"{validator.config.proxy.proxy_client_url}/tasks/statistics/assign",
                 json=payload,
             )
         response.raise_for_status()
@@ -68,7 +77,7 @@ def statistics_report_task_batch(
         }
         with Client(timeout=Timeout(30)) as client:
             response = client.post(
-                f"{validator.config.proxy.proxy_client_url}/organic_tasks/statistics/report",
+                f"{validator.config.proxy.proxy_client_url}/tasks/statistics/report",
                 json=payload,
             )
         response.raise_for_status()
@@ -104,7 +113,7 @@ def statistics_report_task_single(
         }
         with Client(timeout=Timeout(30)) as client:
             response = client.post(
-                f"{validator.config.proxy.proxy_client_url}/organic_tasks/statistics/report",
+                f"{validator.config.proxy.proxy_client_url}/tasks/statistics/report",
                 json=payload,
             )
         response.raise_for_status()

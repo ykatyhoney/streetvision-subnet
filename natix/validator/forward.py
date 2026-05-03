@@ -2,11 +2,10 @@ import re
 import time
 
 import bittensor as bt
-from natix.constants import TARGET_IMAGE_SIZE
 from natix.protocol import prepare_synapse
 from natix.utils.wandb_utils import log_to_wandb
 from natix.validator.api_client import statistics_assign_task, statistics_report_task_batch
-from natix.validator.challenge import augment_challenge, determine_challenge_type, fetch_api_challenge
+from natix.validator.challenge import determine_challenge_type, fetch_api_challenge
 from natix.validator.scoring import get_rewards
 from natix.validator.utils import fix_ip_format
 
@@ -37,15 +36,6 @@ async def forward(self):
     challenge_metadata.update({k: v for k, v in challenge.items() if re.match(r"^(?!image$|video$|videos$|video_\d+$).+", k)})
     input_data = challenge[modality]
 
-    try:
-        input_data, level, data_aug_params = augment_challenge(input_data, TARGET_IMAGE_SIZE, challenge.get("mask_center"))
-    except Exception as e:
-        level, data_aug_params = -1, {}
-        bt.logging.error(f"Unable to apply augmentations: {e}")
-
-    challenge_metadata["data_aug_params"] = data_aug_params
-    challenge_metadata["data_aug_level"] = level
-
     miner_uids = self.uid_deck.next_k(
         k=self.config.neuron.sample_size,
         metagraph=self.metagraph,
@@ -59,7 +49,7 @@ async def forward(self):
     synapse = prepare_synapse(input_data, modality=modality)
 
     try:
-        statistics_response = statistics_assign_task(self, miner_uid_list=miner_uids, type=0, label=int(label), payload_ref=synapse.image)  # noqa: type shadowing
+        statistics_response = statistics_assign_task(self, miner_uid_list=miner_uids, scoring_method=0, category=0, label=int(label), image=synapse.image, task_id=challenge.get("task_id"))
     except Exception as e:
         bt.logging.error(f"Failed to report task assignment to statistics: {e}")
 
