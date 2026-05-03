@@ -8,7 +8,7 @@ import torchvision.transforms as transforms
 import torchvision.transforms.functional as F
 from PIL import Image
 
-from natix.validator.config import TARGET_IMAGE_SIZE
+from natix.constants import TARGET_IMAGE_SIZE
 
 
 class ResizeWithPadding:

@@ -6,9 +6,10 @@ import torch
 
 import bittensor as bt
 
-from natix.synthetic_data_generation import SyntheticDataGenerator
+from natix.validator.synthetic import SyntheticDataGenerator
 from natix.validator.cache import ImageCache
-from natix.validator.config import MODEL_NAMES, ROADWORK_IMAGE_CACHE_DIR, SYNTH_CACHE_DIR, get_task
+from natix.validator.config import ROADWORK_IMAGE_CACHE_DIR, SYNTH_CACHE_DIR
+from natix.validator.synthetic.config import MODEL_NAMES, get_task
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

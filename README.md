@@ -15,11 +15,11 @@ This network is a decentralized subnet designed to inference images to extract i
     </tr>
     <tr style="vertical-align: top !important">
       <td>
-        ⛏️ <a href="docs/Mining.md">Mining Guide</a><br>
-        🔧 <a href="docs/Validating.md">Validator Guide</a><br>
+        ⛏️ <a href="docs/mining.md">Mining Guide</a><br>
+        🔧 <a href="docs/validating.md">Validator Guide</a><br>
         🏗️ <a href="#subnet-architecture">Architecture Diagrams</a><br>
-        📈 <a href="docs/Incentive.md">Incentive Mechanism</a><br>
-        🤝 <a href="docs/Contributor_Guide.md">Contributor Guide</a></td>
+        📈 <a href="docs/incentive.md">Incentive Mechanism</a><br>
+        🤝 <a href="docs/contribution.md">Contributor Guide</a></td>
       <td>
         🚀 <a href="https://www.natix.network">NATIX Network</a><br>
         🤗 <a href="https://huggingface.co/natix-network-org">NATIX Network Hugging Face</a><br>
