@@ -1,7 +1,7 @@
 import os
 import bittensor as bt
-from natix.synthetic_data_generation import SyntheticDataGenerator
-from natix.validator.config import IMAGE_ANNOTATION_MODEL, MODEL_NAMES, TEXT_MODERATION_MODEL
+from natix.validator.synthetic import SyntheticDataGenerator
+from natix.validator.synthetic.config import IMAGE_ANNOTATION_MODEL, MODEL_NAMES, TEXT_MODERATION_MODEL
 
 
 def is_model_cached(model_name):

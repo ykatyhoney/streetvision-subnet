@@ -2,7 +2,7 @@ from unittest.mock import call, patch
 
 import pytest
 
-from natix.validator.config import T2I_MODEL_NAMES
+from natix.validator.synthetic.config import T2I_MODEL_NAMES
 from natix.validator.verify_models import is_model_cached, main
 
 

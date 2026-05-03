@@ -12,7 +12,7 @@ from natix.utils.image_transforms import (
     get_base_transforms,
     get_random_augmentations,
 )
-from natix.validator.config import TARGET_IMAGE_SIZE
+from natix.constants import TARGET_IMAGE_SIZE
 
 TRANSFORMS = [
     center_crop,
