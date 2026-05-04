@@ -79,7 +79,7 @@ HUGGING_FACE_TOKEN=your_hugging_face_token_here
 
 To run the validator:
 ```bash
-pm2 start ecosystem.validator.config.js
+pm2 start scripts/ecosystem.validator.config.js
 ```
 
 Optional flags:
