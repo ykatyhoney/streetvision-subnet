@@ -37,5 +37,4 @@ echo "Starting validator process"
   --axon.port $VALIDATOR_AXON_PORT \
   --proxy.proxy_client_url $PROXY_CLIENT_URL \
   --organic.poll_interval_seconds $ORGANIC_POLL_INTERVAL_SECONDS \
-  --logging.debug \
-  --wandb.off
+  --logging.debug
