@@ -11,6 +11,10 @@ from natix.validator.utils import fix_ip_format
 
 
 async def forward(self):
+    # Subnet is halted: skip all miner queries and scoring.
+    bt.logging.info("Subnet halted: skipping challenge forward pass.")
+    return
+
     challenge_metadata = {}
     label, modality, source_model_task, cache, source = determine_challenge_type(
         self.media_cache, self.synthetic_media_cache
