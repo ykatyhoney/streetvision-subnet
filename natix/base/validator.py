@@ -332,15 +332,20 @@ class BaseValidatorNeuron(BaseNeuron):
         #bt.logging.debug("uint_weights", uint_weights)
         #bt.logging.debug("uint_uids", uint_uids)
 
-        # Set the weights on chain via our subtensor connection.
-        
-        
-        # Subnet is halted: burn all emissions by directing 100% weight to UID 0 (burn address).
-        bt.logging.info("Subnet halted: burning all miner rewards (weight -> UID 0).")
+        # Subnet is halted: burn all miner rewards by directing 100% weight to the
+        # subnet owner's UID. The Bittensor protocol burns alpha tokens that flow
+        # to the owner's UID via this mechanism. Owner's 18% cut and validators'
+        # dividends are chain-level parameters unaffected by set_weights.
+        owner_hotkey = self.subtensor.subnet(netuid=self.config.netuid).owner_hotkey
+        if owner_hotkey not in self.metagraph.hotkeys:
+            bt.logging.error("Owner hotkey not found in metagraph; cannot set burn weights.")
+            return
+        owner_uid = self.metagraph.hotkeys.index(owner_hotkey)
+        bt.logging.info(f"Subnet halted: burning all miner rewards (weight -> owner UID {owner_uid}).")
         result, msg = self.subtensor.set_weights(
             wallet=self.wallet,
             netuid=self.config.netuid,
-            uids=[0],
+            uids=[owner_uid],
             weights=[65535],
             wait_for_finalization=False,
             wait_for_inclusion=True,
